@@ -1,0 +1,38 @@
+.root {
+    -fx-background-color: #f4f4f4;
+}
+
+.header {
+    -fx-background-color: #333333;
+    -fx-padding: 10px;
+}
+
+.label{
+	-fx-text-fill: gray;
+	-fx-font-size: 18px;
+}
+
+.nav-button {
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-background-color: #555555;
+    -fx-pref-width: 150px;
+    -fx-pref-height: 50px;
+}
+
+.nav-button:hover {
+    -fx-background-color: #777777;
+}
+
+.studentManagement-label {
+    -fx-font-size: 20px;
+    -fx-text-fill: #333333;
+    -fx-font-weight: bold;
+}
+
+.loans-label{
+	-fx-font-size: 17px;
+    -fx-text-fill: #333333;
+    -fx-underline: true;
+    -fx-font-weight: bold;
+}
