@@ -1,28 +1,34 @@
 package persistence;
 
-import java.util.ArrayList;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import domain.Student;
-import domain.Loan;
+
 import domain.Item;
+import domain.Loan;
+import domain.Student;
 
 public class StudentDataAccess {
 	
-	public static boolean createStudent(int broncoId, String name, String course, String email)
+	public static boolean createStudent(Integer broncoId, String name, String course, String email)
 	{
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 																				   .addAnnotatedClass(Loan.class)
 																				   .addAnnotatedClass(Item.class).buildSessionFactory();
 		boolean flag = false;
 		Session session = factory.getCurrentSession();
+		Student student = null;
 		
 		try
 		{
-			
-			Student student = new Student(broncoId, name, course, email);
+			if(broncoId == null)
+			{
+				student = new Student(name, course, email);
+			}
+			else
+			{
+				student = new Student(broncoId, name, course, email);
+			}
 			
 			session.beginTransaction();
 			

@@ -39,7 +39,6 @@ public class ManageStudentPage {
 	
 	public static void manageStudentPage(BorderPane root)
 	{
-		Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
 		
 		Label broncoIdLbl = new Label("Bronco ID:");
 		Label studentNameLbl = new Label("Student Name: ");
@@ -56,22 +55,28 @@ public class ManageStudentPage {
 		loansLbl.getStyleClass().add("loans-label");
 		
 		ListView<String> listView = new ListView<String>();
-		listView.setPrefWidth(80);
-		listView.setPrefHeight(300);
-		
 		
 		HBox hbox0 = new HBox(broncoIdLbl, broncoIdTxtField, studentNameLbl, studentNameTxtField);
 		HBox hbox1 = new HBox(studentCourseLbl, studentCourseTxtField, studentEmailLbl, studentEmailTxtField);
 		
-		hbox0.setMargin(broncoIdTxtField, new Insets(0, 0, 0, 60));
-		hbox0.setMargin(studentNameLbl, new Insets(0, 50, 0, 30));
+		HBox.setMargin(broncoIdTxtField, new Insets(0, 0, 0, 60));
 		
-		hbox1.setMargin(studentCourseTxtField, new Insets(0, 0, 0, 13));
-		hbox1.setMargin(studentEmailLbl, new Insets(0, 120, 0, 32));
-
+		HBox.setMargin(broncoIdTxtField, new Insets(0, 0, 0, 60));
+		HBox.setMargin(studentNameLbl, new Insets(0, 50, 0, 30));
 		
+		HBox.setMargin(studentCourseTxtField, new Insets(0, 0, 0, 13));
+		HBox.setMargin(studentEmailLbl, new Insets(0, 120, 0, 32));
+		
+		
+		HBox.setMargin(broncoIdLbl, new Insets(0, 0, 0, 300));
+		HBox.setMargin(studentCourseLbl, new Insets(0, 0, 0, 300));
+//		
+//		
+		
+	
 		
 		Label studentManagementLbl = new Label("Student Management");
+		HBox.setMargin(studentManagementLbl , new Insets(0, 0, 0, 50));
 	    studentManagementLbl.getStyleClass().add("studentManagement-label");
 	    
 	
@@ -104,16 +109,20 @@ public class ManageStudentPage {
 		
 		root.setCenter(vbox);
 		vbox.setSpacing(35);
-		vbox.setMargin(listView, new Insets(0, 430, 0, 0));
-		vbox.setMargin(studentManagementLbl, new Insets(0, 400, 0, 0));
-		vbox.setMargin(loansLbl, new Insets(0, 1015, 0, 0));
+		VBox.setMargin(studentManagementLbl, new Insets(0, 0, 0, 0));
 		
+		VBox.setMargin(listView, new Insets(0, 100, 0, 100));
 		
 		vbox.setAlignment(Pos.TOP_CENTER);
-		root.setMargin(vbox, new Insets(50, 0, 0, visualBounds.getWidth()/2-300));
+		BorderPane.setMargin(vbox, new Insets(50, 0, 0, 0));
         
        btnAdd.setOnAction(e -> {
-    	   	int broncoId = Integer.valueOf(broncoIdTxtField.getText());
+    	   	Integer broncoId = null;
+    	   	String broncoIdString = broncoIdTxtField.getText();
+    	   	if(broncoIdString != null && !broncoIdString.isEmpty())
+    	   	{
+    	   		broncoId = Integer.valueOf(broncoIdString);
+    	   	}
 			String studentName = studentNameTxtField.getText();
 			String studentCourse = studentCourseTxtField.getText();
 			String studentEmail = studentEmailTxtField.getText();
@@ -138,6 +147,13 @@ public class ManageStudentPage {
 				studentNameTxtField.setText(student.getName());
 				studentCourseTxtField.setText(student.getCourse());
 				studentEmailTxtField.setText(student.getEmail());
+				
+				List<Loan> loans = student.getLoans();
+				for(Loan loan : loans)
+				{
+					listView.getItems().add(loan.toString());
+				}
+				
 			}
 			else
 			{

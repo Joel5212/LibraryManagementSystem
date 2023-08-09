@@ -35,22 +35,13 @@ public class MainMenu extends Application {
 		 this.primaryStage = primaryStage;
 	     this.primaryStage.setTitle("Library Management System");
 
-	        // Create the header navigation bar
 	     HBox header = createHeader();
-	     
-	        // Create the root layout
+	       
 	     root = new BorderPane();
 	     root.setTop(header);
 	     root.getStyleClass().add("root");
-
-	        // Show the home screen by default
-
-	        // Create the scene and set it on the primary stage
 	     
-	     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
-	     
-	     
-	     Scene scene = new Scene(root, visualBounds.getWidth(), visualBounds.getHeight());
+	     Scene scene = new Scene(root, 1200, 1000);
 	     scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 	     primaryStage.setScene(scene);
 	     primaryStage.show();
@@ -59,28 +50,24 @@ public class MainMenu extends Application {
 	
 
 	private HBox createHeader() {
-        // Create the header navigation bar
+     
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER);
         header.setSpacing(10);
         header.getStyleClass().add("header");
-        
-        // Create the navigation buttons
+
         Button manageLoansBtn = createNavButton("Manage Loans");
         Button manageStudentsBtn = createNavButton("Manage Students");
         Button manageItemsBtn = createNavButton("Manage Items");
         Button home = createNavButton("Home");
 
-        // Set action event handlers for the navigation buttons
         manageLoansBtn.setOnAction(event -> ManageStudentPage.manageStudentPage(root));
-        manageStudentsBtn.setOnAction(event -> showManageStudentScreen());
+        manageStudentsBtn.setOnAction(event -> ManageStudentPage.manageStudentPage(root));
         manageItemsBtn.setOnAction(event -> showManageItemScreen());
 
-        // Add navigation buttons to the header
         header.getChildren().addAll(home, manageLoansBtn, manageStudentsBtn, manageItemsBtn);
         header.setSpacing(50);
 
-        // Return the header
         return header;
     }
 

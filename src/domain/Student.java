@@ -3,6 +3,7 @@ package domain;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,12 +32,19 @@ public class Student
 	@Column(name="email")
 	private String email;
 	
-	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
 	private List<Loan> loans;
 
 	public Student(int broncoId, String name, String course, String email)
 	{
 		this.broncoId = broncoId;
+		this.name = name;
+		this.course = course;
+		this.email = email;
+	}
+	
+	public Student(String name, String course, String email)
+	{
 		this.name = name;
 		this.course = course;
 		this.email = email;
