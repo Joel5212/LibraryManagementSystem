@@ -10,10 +10,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import domain.Author;
-import domain.Book;
-import domain.Documentary;
-import domain.DocumentaryProducer;
+import entity.Author;
+import entity.Book;
+import entity.Documentary;
+import entity.DocumentaryProducer;
 
 public class AuthorDataAccess {
 	public static Author createAuthor(String name, String email, String subject, String nationality, int bookId)

@@ -4,9 +4,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import domain.Item;
-import domain.Loan;
-import domain.Student;
+import entity.Item;
+import entity.Loan;
+import entity.Student;
 
 public class StudentDataAccess {
 	

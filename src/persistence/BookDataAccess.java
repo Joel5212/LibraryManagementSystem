@@ -10,11 +10,12 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import domain.Book;
-import domain.DocumentaryProducer;
-import domain.Item;
-import domain.Student;
-import domain.Author;
+
+import entity.Author;
+import entity.Book;
+import entity.DocumentaryProducer;
+import entity.Item;
+import entity.Student;
 
 public class BookDataAccess {
 	

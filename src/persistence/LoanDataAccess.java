@@ -9,9 +9,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
-import domain.Student;
-import domain.Item;
-import domain.Loan;
+import entity.Item;
+import entity.Loan;
+import entity.Student;
 
 public class LoanDataAccess {
 	

@@ -9,9 +9,10 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import domain.Documentary;
-import domain.Student;
-import domain.DocumentaryProducer;
+
+import entity.Documentary;
+import entity.DocumentaryProducer;
+import entity.Student;
 
 public class DocumentaryAccess {
 	

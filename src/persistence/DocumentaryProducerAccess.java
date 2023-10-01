@@ -12,8 +12,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import domain.Documentary;
-import domain.DocumentaryProducer;
+import entity.Documentary;
+import entity.DocumentaryProducer;
 
 public class DocumentaryProducerAccess {
 	

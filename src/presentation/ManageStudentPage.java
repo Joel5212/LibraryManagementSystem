@@ -32,8 +32,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import domain.Loan;
-import domain.Student;
+import entity.Loan;
+import entity.Student;
 
 public class ManageStudentPage {
 	
@@ -61,15 +61,15 @@ public class ManageStudentPage {
 		
 		HBox.setMargin(broncoIdTxtField, new Insets(0, 0, 0, 60));
 		
-		HBox.setMargin(broncoIdTxtField, new Insets(0, 0, 0, 60));
+//		HBox.setMargin(studentNameTxtField, new Insets(0, 200, 0, 0));
 		HBox.setMargin(studentNameLbl, new Insets(0, 50, 0, 30));
 		
 		HBox.setMargin(studentCourseTxtField, new Insets(0, 0, 0, 13));
 		HBox.setMargin(studentEmailLbl, new Insets(0, 120, 0, 32));
 		
 		
-		HBox.setMargin(broncoIdLbl, new Insets(0, 0, 0, 300));
-		HBox.setMargin(studentCourseLbl, new Insets(0, 0, 0, 300));
+		HBox.setMargin(broncoIdLbl, new Insets(0, 0, 0, 180));
+		HBox.setMargin(studentCourseLbl, new Insets(0, 0, 0, 180));
 //		
 //		
 		
@@ -85,21 +85,6 @@ public class ManageStudentPage {
 		Button btnUpdate = new Button("Update");
 		Button btnSearch = new Button("Search");
 		
-//		btnSearch.setOnAction(e -> {
-//			int broncoId = Integer.valueOf(textField.getText());
-//			List<Loan> loans = LoanDataAccess.getLoans(broncoId);
-//			List<String> loansString = new ArrayList<String>();
-//			
-//			int i = 0;
-//			for(Loan loan : loans)
-//			{
-//				loansString.add(loan.getStudent().getName() + "        " + loan.getItem().getTitle() + "        $"  + loan.getItem().getDailyPrice() + "        " +loan.getLoanDate() + "        " + loan.getDuedate());
-//				listView.getItems().add(loansString.get(i));
-//				i++;
-//			}
-//			
-//		});
-		
 		
 		
 		HBox hbox2 = new HBox(btnAdd, btnDelete, btnUpdate, btnSearch);
@@ -110,7 +95,7 @@ public class ManageStudentPage {
 		root.setCenter(vbox);
 		vbox.setSpacing(35);
 		VBox.setMargin(studentManagementLbl, new Insets(0, 0, 0, 0));
-		
+		VBox.setMargin(hbox2, new Insets(0, 0, 0, 100));
 		VBox.setMargin(listView, new Insets(0, 100, 0, 100));
 		
 		vbox.setAlignment(Pos.TOP_CENTER);

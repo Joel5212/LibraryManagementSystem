@@ -41,7 +41,7 @@ public class MainMenu extends Application {
 	     root.setTop(header);
 	     root.getStyleClass().add("root");
 	     
-	     Scene scene = new Scene(root, 1200, 1000);
+	     Scene scene = new Scene(root, 1000, 750);
 	     scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 	     primaryStage.setScene(scene);
 	     primaryStage.show();
@@ -61,9 +61,9 @@ public class MainMenu extends Application {
         Button manageItemsBtn = createNavButton("Manage Items");
         Button home = createNavButton("Home");
 
-        manageLoansBtn.setOnAction(event -> ManageStudentPage.manageStudentPage(root));
+//        manageLoansBtn.setOnAction(event -> ManageStudentPage.manageStudentPage(root));
         manageStudentsBtn.setOnAction(event -> ManageStudentPage.manageStudentPage(root));
-        manageItemsBtn.setOnAction(event -> showManageItemScreen());
+        manageItemsBtn.setOnAction(event -> ManageItemPage.manageItemPage(root));
 
         header.getChildren().addAll(home, manageLoansBtn, manageStudentsBtn, manageItemsBtn);
         header.setSpacing(50);
