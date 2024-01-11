@@ -1,11 +1,13 @@
 package entity;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -14,33 +16,28 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "book")
-@PrimaryKeyJoinColumn(name="item_id")
-public class Book extends Item
-{	
+@PrimaryKeyJoinColumn(name = "item_id")
+public class Book extends Item {
 	@Column(name = "number_pages")
 	private int numberPages;
 
-	@ManyToMany(cascade={CascadeType.PERSIST})
-	@JoinTable(
-	        name = "book_author", 
-	        joinColumns = { @JoinColumn(name = "item_id") }, 
-	        inverseJoinColumns = { @JoinColumn(name = "author_id") }
-	    )
-	private List<Author> authors;
-	
+	@ManyToMany(fetch=FetchType.EAGER)
+	@JoinTable(name = "book_author", joinColumns = { @JoinColumn(name = "item_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "author_id") })
+	private List<Author> authors = new ArrayList<>();
+
 	@Column(name = "publisher")
 	private String publisher;
-	
+
 	@Column(name = "publication_date")
-	private String publicationDate;
-	
+	private Date publicationDate;
+
 	public Book() {
-		
+
 	}
-	
-	public Book(boolean isAvailable, String title, String description, String location, double dailyPrice, 
-			int numberPages, String publisher, String publicationDate)
-	{
+
+	public Book(boolean isAvailable, String title, String description, String location, BigDecimal dailyPrice,
+			int numberPages, String publisher, Date publicationDate) {
 		super(isAvailable, title, description, location, dailyPrice);
 		this.numberPages = numberPages;
 		this.publisher = publisher;
@@ -71,27 +68,23 @@ public class Book extends Item
 		this.publisher = publisher;
 	}
 
-	public String getPublicationDate() {
+	public Date getPublicationDate() {
 		return publicationDate;
 	}
 
-	public void setPublicationDate(String publicationDate) {
+	public void setPublicationDate(Date publicationDate) {
 		this.publicationDate = publicationDate;
 	}
-	
-	public void addAuthor(Author tempAuthor) {
-		if(authors == null) {
-			authors = new ArrayList<Author>();
-		}
-		
+
+	public void addAuthor(Author tempAuthor) {		
 		authors.add(tempAuthor);
 	}
-	
+
 	public void removeAuthor(Author author) {
 		authors.remove(author);
 	}
-	
-	//@Override TODO: remove comment when superclass is implemented
+
+	// @Override TODO: remove comment when superclass is implemented
 //	public String toString() {
 //		return;
 //	}

@@ -1,11 +1,14 @@
 package entity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -17,54 +20,30 @@ import javax.persistence.Table;
 @PrimaryKeyJoinColumn(name="item_id")
 public class Documentary extends Item
 {	
-	@Column(name = "director")
-	private String director;
-	
-	@ManyToMany(cascade={CascadeType.PERSIST})
-	@JoinTable(
-	        name = "documentary_documentary_producer", 
-	        joinColumns = { @JoinColumn(name = "item_id") }, 
-	        inverseJoinColumns = { @JoinColumn(name = "producer_id") }
-	    )
-	private List<DocumentaryProducer> producers;
-	
 	@Column(name = "length")
 	private int length;
 	
 	@Column(name = "release_date")
-	private String releaseDate;
+	private Date releaseDate;
+	
+	@ManyToMany(fetch=FetchType.EAGER,  cascade = { CascadeType.PERSIST })
+	@JoinTable(
+	        name = "documentary_producer", 
+	        joinColumns = { @JoinColumn(name = "item_id") }, 
+	        inverseJoinColumns = { @JoinColumn(name = "producer_id") }
+	    )
+	private List<Producer> producers;
 	
 	public Documentary(boolean isAvailable, String title, String description, 
-					   String location, double dailyPrice, String director, int length, String releaseDate)
+					   String location, BigDecimal dailyPrice, int length, Date releaseDate)
 	{
 		super(isAvailable, title, description, location, dailyPrice);
-	    this.director = director;
 	    this.length = length;
 	    this.releaseDate = releaseDate;
 	}
 	
 	public Documentary() {
 		
-	}
-
-	public String getDirector() {
-		return director;
-	}
-
-	public void setDirector(String director) {
-		this.director = director;
-	}
-
-	public List<DocumentaryProducer> getProducers() {
-		return producers;
-	}
-
-	public void setProducers(List<DocumentaryProducer> producers) {
-		this.producers = producers;
-	}
-	
-	public void removeProducer(DocumentaryProducer producer) {
-		producers.remove(producer);
 	}
 
 	public int getLength() {
@@ -75,29 +54,49 @@ public class Documentary extends Item
 		this.length = length;
 	}
 
-	public String getReleaseDate() {
+	public Date getReleaseDate() {
 		return releaseDate;
 	}
 
-	public void setReleaseDate(String releaseDate) {
+	public void setReleaseDate(Date releaseDate) {
 		this.releaseDate = releaseDate;
 	}
-
-	public void addProducer(DocumentaryProducer tempProducer) {
+	
+	public void addProducer(Producer producer) {
 		if(producers == null) {
-			producers = new ArrayList<DocumentaryProducer>();
+			producers = new ArrayList<Producer>();
+		}
+		producers.add(producer);
+	}
+
+	public void removeProducer(Producer producer) {
+		producers.remove(producer);
+	}
+	
+	public List<Producer> getProducers() {
+		return producers;
+	}
+
+	public void setProducers(List<Producer> producers) {
+		this.producers = producers;
+	}
+	
+	public void removeProducers() {
+		
+		for(Producer producer : this.producers)
+		{
+			producer.removeDocumentary(this);
 		}
 		
-		producers.add(tempProducer);
+		setProducers(null);
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + "\ndirector=" + director + "\nlength="
+		return super.toString() + "\nlength="
 				+ length + "\nreleaseDate=" + releaseDate;
 
 	}
-
 }
 
 /* ITEM ATTRIBUTES

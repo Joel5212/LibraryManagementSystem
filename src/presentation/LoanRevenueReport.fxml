@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+
+<ScrollPane prefHeight="850.0" prefWidth="1700.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.LoanRevenueReportController">
+   <content>
+      <TableView fx:id="tvLoanReport" prefHeight="848.0" prefWidth="1698.0">
+         <columns>
+            <TableColumn fx:id="colLoanId" prefWidth="75.0" text="Loan ID" />
+            <TableColumn fx:id="colItem" prefWidth="150.0" text="Item" />
+            <TableColumn fx:id="colStudent" prefWidth="150.0" text="Student " />
+            <TableColumn fx:id="colDailyPrice" prefWidth="100.0" text="Daily Price" />
+            <TableColumn fx:id="colStartDate" prefWidth="75.0" text="Start Date" />
+            <TableColumn fx:id="colDueDate" prefWidth="75.0" text="Due Date" />
+            <TableColumn fx:id="colReturnedDate" prefWidth="75.0" text="Returned Date" />
+            <TableColumn fx:id="colDaysOverdue" prefWidth="75.0" text="Days Overdue" />
+            <TableColumn fx:id="colOverdueFine" prefWidth="75.0" text="Overdue Fine" />
+            <TableColumn fx:id="colTotalPayment" prefWidth="138.0" text="Total Payment" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+   </content>
+</ScrollPane>

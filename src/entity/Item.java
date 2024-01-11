@@ -1,9 +1,8 @@
 package entity;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,10 +11,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
-import javax.persistence.Table;
 import javax.persistence.InheritanceType;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+
 
 @Entity
 @Table(name = "item")
@@ -25,8 +25,8 @@ public class Item
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = "item_id")
-	private int itemId;
-	
+	private Integer itemId;
+
 	@Column(name = "available")
 	private boolean isAvailable;
 	
@@ -40,14 +40,13 @@ public class Item
 	private String location;
 	
 	@Column(name = "daily_price")
-	private double dailyPrice;
+	private BigDecimal dailyPrice;
 	
-//	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
-//	private Loan loan;
+	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
+	private Loan loan;
 	
 	public Item(boolean isAvailable, String title, String description, 
-					   String location, double dailyPrice)
-	{
+					   String location, BigDecimal dailyPrice){
 	    this.isAvailable = isAvailable;
 	    this.title = title;
 	    this.description = description;
@@ -59,7 +58,7 @@ public class Item
 		
 	}
 
-	public int getItemId() {
+	public Integer getItemId() {
 		return itemId;
 	}
 
@@ -99,22 +98,30 @@ public class Item
 		this.location = location;
 	}
 
-	public double getDailyPrice() {
+	public BigDecimal getDailyPrice() {
 		return dailyPrice;
 	}
 
-	public void setDailyPrice(double dailyPrice) {
+	public void setDailyPrice(BigDecimal dailyPrice) {
 		this.dailyPrice = dailyPrice;
 	}
 	
-	/* End Get Set */
-	
-	/* Start Methods */
-	
+	public Loan getLoan() {
+		return loan;
+	}
+
+	public void setLoan(Loan loan) {
+		this.loan = loan;
+	}
 	
 	public String returnItemDueDate() {
 		//Return current time
 		return new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
+	}
+	
+	public void removeLoan() {
+		setIsAvailable(true);
+	    setLoan(null);
 	}
 	
 	/* End Methods */

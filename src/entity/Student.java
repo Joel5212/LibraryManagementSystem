@@ -1,5 +1,7 @@
 package entity;
 
+import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,77 +10,62 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.*;
-import java.util.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "student")
-public class Student
-{
+public class Student {
 	@Id
-	@Column(name = "bronco_id")
-	private int broncoId;
-	
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name = "student_id")
+	private int studentId;
+
 	@Column(name = "name")
 	private String name;
-	
-	@Column(name="course")
-	private String course;
-	
-	@Column(name="email")
+
+	@Column(name = "graduation_year")
+	private Integer graduationYear;
+
+	@Column(name = "email")
 	private String email;
-	
-	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+
+	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Loan> loans;
 
-	public Student(int broncoId, String name, String course, String email)
-	{
-		this.broncoId = broncoId;
+	public Student(String name, Integer graduationYear, String email) {
 		this.name = name;
-		this.course = course;
+		this.graduationYear = graduationYear;
 		this.email = email;
-	}
-	
-	public Student(String name, String course, String email)
-	{
-		this.name = name;
-		this.course = course;
-		this.email = email;
-	}
-	
-	public Student()
-	{
-		
 	}
 
-	public int getBroncoId() {
-		return broncoId;
+	public Student() {
+
+	}
+
+	public Integer getStudentId() {
+		return studentId;
 	}
 
 	public void setBroncoId(int broncoId) {
-		this.broncoId = broncoId;
+		this.studentId = broncoId;
 	}
 
 	public String getName() {
 		return name;
 	}
-	
+
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getCourse() {
-		return course;
+	public Integer getGraduationYear() {
+		return graduationYear;
 	}
 
-	public void setCourse(String course) {
-		this.course = course;
+	public void setGraduationYear(Integer graduationYear) {
+		this.graduationYear = graduationYear;
 	}
-	
+
 	public String getEmail() {
 		return email;
 	}
@@ -86,64 +73,39 @@ public class Student
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	
-
 
 	public List<Loan> getLoans() {
 		return loans;
 	}
 
-
 	public void setLoans(List<Loan> loans) {
 		this.loans = loans;
 	}
 	
-//	public List<Loan> createOverdueLoansList(List<Loan> loans) {
-//		for(Loan loan : loans) {
-//			
-//		}
-//	}
+	//removing loan info from student side
+	public void removeLoan(Loan loan) {
+	    loan.getItem().setIsAvailable(true);
+	    loan.setStudent(null);
+	    getLoans().remove(loan);
+	}
 	
-	public List<Loan> createOverdueLoansList2() {
-		
-		List<Loan> overdueLoans = new ArrayList<Loan>();
-		
-		for(Loan loan : this.loans) {
-			String loanDueDateStr = loan.getDuedate();
-			
-			
-			SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-			//dates to be compare 
-			Date currentDate = new Date();
-			
-			String currentDateFormatted;
-			Date currentDateFinal;
-			
-			Date loanDueDate = null;
-			try {
-				currentDateFormatted = formatter.format(currentDate);
-				currentDateFinal = formatter.parse(currentDateFormatted);
-				loanDueDate = formatter.parse(loanDueDateStr); 
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}  
-			
-			//comparing dates  
-			if(currentDate.compareTo(loanDueDate) > 0)   
-			{  
-				System.out.println(loan);
-				overdueLoans.add(loan);
-			}     
+	//removing all loans of a student
+	public void removeAllLoans()
+	{
+		if(loans != null)
+		{
+			for(Loan loan : this.loans)
+			{
+				 loan.getItem().setIsAvailable(true);
+				 loan.setStudent(null);
+				 loan.getItem().setLoan(null);
+			}
 		}
-		return overdueLoans;
 	}
 
 	@Override
 	public String toString() {
-		return "broncoId=" + broncoId + "\nname=" + name + "\ncourse=" + course + "\nemail=" + email;
+		return "broncoId=" + studentId + "\nname=" + name + "\ncourse=" + graduationYear + "\nemail=" + email;
 	}
-
-	
 
 }

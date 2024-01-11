@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.LoanReceiptController">
+   <children>
+      <Label prefHeight="38.0" prefWidth="141.0" text="Loan Receipt">
+         <VBox.margin>
+            <Insets left="330.0" top="15.0" />
+         </VBox.margin>
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <HBox prefHeight="37.0" prefWidth="462.0">
+         <children>
+            <Label prefHeight="37.0" prefWidth="72.0" text="Loan Id:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="tfLoanId" prefHeight="37.0" prefWidth="468.0">
+               <HBox.margin>
+                  <Insets left="45.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </Label>
+         </children>
+         <VBox.margin>
+            <Insets left="230.0" top="35.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox prefHeight="37.0" prefWidth="563.0">
+         <children>
+            <Label prefHeight="37.0" prefWidth="72.0" text="Item:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="tfItem" prefHeight="37.0" prefWidth="474.0">
+               <HBox.margin>
+                  <Insets left="52.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </Label>
+         </children>
+         <VBox.margin>
+            <Insets left="230.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox prefHeight="37.0" prefWidth="462.0">
+         <children>
+            <Label prefHeight="37.0" prefWidth="72.0" text="Student:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="tfStudent" prefHeight="37.0" prefWidth="460.0">
+               <HBox.margin>
+                  <Insets left="40.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </Label>
+         </children>
+         <VBox.margin>
+            <Insets left="230.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox prefHeight="37.0" prefWidth="462.0">
+         <children>
+            <Label prefHeight="37.0" prefWidth="88.0" text="Start Date:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="tfStartDate" prefHeight="37.0" prefWidth="460.0">
+               <HBox.margin>
+                  <Insets left="26.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </Label>
+         </children>
+         <VBox.margin>
+            <Insets left="230.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox prefHeight="37.0" prefWidth="462.0">
+         <children>
+            <Label prefHeight="37.0" prefWidth="88.0" text="Due Date:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="tfDueDate" prefHeight="37.0" prefWidth="460.0">
+               <HBox.margin>
+                  <Insets left="26.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <padding>
+                  <Insets left="20.0" />
+               </padding>
+            </Label>
+         </children>
+         <VBox.margin>
+            <Insets left="230.0" />
+         </VBox.margin>
+      </HBox>
+   </children>
+</VBox>
