@@ -99,7 +99,7 @@ public class BookDataAccess {
 			session.beginTransaction();
 
 			if (orderBy.equals("none")) {
-				query = session.createQuery("select b from Book as b");
+				query = session.createQuery("select b from Book as b order by b.itemId asc");
 			} else if (orderBy.equals("titleAZ")) {
 				query = session.createQuery("select b from Book as b order by b.title asc");
 			} else if (orderBy.equals("titleZA")) {

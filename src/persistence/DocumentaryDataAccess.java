@@ -102,7 +102,7 @@ public class DocumentaryDataAccess {
 			session.beginTransaction();
 
 			if (orderBy.equals("none")) {
-				query = session.createQuery("select d from Documentary as d");
+				query = session.createQuery("select d from Documentary as d  order by d.itemId asc");
 			} else if (orderBy.equals("titleAZ")) {
 				query = session.createQuery("select d from Documentary as d order by d.title asc");
 			} else if (orderBy.equals("titleZA")) {

@@ -2,6 +2,7 @@ package persistence;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
@@ -19,8 +20,13 @@ public class StudentDataAccess {
 		Session session = factory.getCurrentSession();
 		Student student = null;
 		String result = "";
+		Transaction tx = null;
 
 		try {
+			
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			student = new Student(name, graduationYear, email);
 
@@ -103,10 +109,13 @@ public class StudentDataAccess {
 		Session session = factory.getCurrentSession();
 		Student student = null;
 		String result = "";
+		Transaction tx = null;
 
 		try {
 
-			session.beginTransaction();
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			student = session.get(Student.class, studentId);
 			
@@ -143,10 +152,13 @@ public class StudentDataAccess {
 		Session session = factory.getCurrentSession();
 		Student student = null;
 		String result = "";
+		Transaction tx = null;
 
 		try {
 
-			session.beginTransaction();
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			student = session.get(Student.class, studentId);
 			
@@ -166,6 +178,7 @@ public class StudentDataAccess {
 			}
 		} catch (Exception e) {
 			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {

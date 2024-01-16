@@ -207,7 +207,7 @@
             														<Insets left="120.0" />
             													</HBox.margin>
             												</Button>
-            												<Button fx:id="btnAdd" mnemonicParsing="false" onAction="#createAuthor" prefHeight="30.0" prefWidth="80.0" text="Add">
+            												<Button fx:id="btnAdd" mnemonicParsing="false" onAction="#addAuthor" prefHeight="30.0" prefWidth="80.0" text="Add">
             													<HBox.margin>
             														<Insets left="20.0" right="20.0" />
             													</HBox.margin>

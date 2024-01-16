@@ -1,7 +1,10 @@
 package persistence;
 
+import java.util.List;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
@@ -13,61 +16,67 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class ProducerDataAccess {
-	
-	public static Producer createProducer(String firstName, String lastName, String style, String nationality)
-	{
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class).addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+
+	public static String createProducer(String firstName, String lastName, String style, String nationality) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
 		Producer producer = null;
-		
-		try
-		{
-			session.beginTransaction();
-			
+		String result = "";
+		Session session = null;
+		Transaction tx = null;
+
+		try {
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
+
 			producer = new Producer(firstName, lastName, style, nationality);
-			
+
 			session.save(producer);
 			
+			result = "created";
+
 			session.getTransaction().commit();
-			
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
-		return producer;
+		return result;
 	}
-	
-	public static Producer loadProducer(int producerId)
-	{
+
+	public static Producer loadProducer(int producerId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
-				   																   .addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
 		Producer producer = null;
-		
-		try
-		{
-			
+
+		try {
+
 			session.beginTransaction();
-			
+
 			producer = session.get(Producer.class, producerId);
-			
-			session.getTransaction().commit();
-		
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+
+			if (producer != null) {
+				session.getTransaction().commit();
+			}
+
+		} catch (Exception e) {
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
 		return producer;
 	}
-	
+
 //	public static String getDocumentariesOfProducer(int code){
 //		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(Producer.class).buildSessionFactory();
 //		Session session = factory.getCurrentSession();
@@ -129,7 +138,8 @@ public class ProducerDataAccess {
 //	
 	public static ObservableList<Producer> loadAllProducers(String orderBy) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
-				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
 		ObservableList<Producer> producers = null;
 		Query query = null;
@@ -137,100 +147,120 @@ public class ProducerDataAccess {
 		try {
 
 			session.beginTransaction();
-			
-			if(orderBy.equals("none"))
-			{
-				 query = session.createQuery("select p from Producer as p");
-			}
-			else if(orderBy.equals("lastNameAZ"))
-			{
+
+			if (orderBy.equals("none")) {
+				query = session.createQuery("select p from Producer as p order by p.producerId asc");
+			} else if (orderBy.equals("lastNameAZ")) {
 				query = session.createQuery("select p from Producer as p order by p.lastName asc");
-			}
-			else if(orderBy.equals("lastNameZA"))
-			{
+			} else if (orderBy.equals("lastNameZA")) {
 				query = session.createQuery("select p from Producer as p order by p.lastName desc");
 			}
-			
+
 			producers = FXCollections.observableArrayList(query.list());
-			
-			session.getTransaction().commit();
+
+			if (producers != null && !producers.isEmpty()) {
+				session.getTransaction().commit();
+			}
 
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
 
 		}
 		return producers;
 	}
-	
-	public static boolean updateProducer(int producerId, String updatedFirstName, String updatedLastName, String updatedStyle,
-			String updatedNationality)
-	{
+
+	public static String updateProducer(int producerId, String updatedFirstName, String updatedLastName,
+			String updatedStyle, String updatedNationality) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
-		   																		   .addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
+		Session session = null;
 		Producer producer = null;
-		boolean flag = false;
-		
+		String result = "";
+		Transaction tx = null;
+
 		try {
-			session.beginTransaction();
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			producer = session.get(Producer.class, producerId);
-			producer.setFirstName(updatedFirstName);
-			producer.setLastName(updatedLastName);
-			producer.setStyle(updatedStyle);
-			producer.setNationality(updatedNationality);
 
-			session.save(producer);
+			if (producer != null) {
+				producer.setFirstName(updatedFirstName);
+				producer.setLastName(updatedLastName);
+				producer.setStyle(updatedStyle);
+				producer.setNationality(updatedNationality);
 
-			session.getTransaction().commit();
+				session.save(producer);
 
-			flag = true;
+				result = "updated";
+
+				session.getTransaction().commit();
+			} else {
+				result = "producerNotFound";
+			}
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 
-	public static boolean deleteProducer(int producerId)
-	{
+	public static String deleteProducer(int producerId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
-				   																   .addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
+		Session session = null;
 		Producer producer = null;
-		boolean flag = false;
-		
-		try
-		{
-			
-			session.beginTransaction();
-			
+		String result = "";
+		Transaction tx = null;
+
+		try {
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
+
 			producer = session.get(Producer.class, producerId);
-			
-			for(Documentary doc : producer.getDocumentaries()) {
-				doc.removeProducer(producer);
+
+			if (producer != null) {
+				
+				List<Documentary> documentaries = producer.getDocumentaries();
+				
+				for (Documentary documentary : documentaries) {
+					documentary.removeProducer(producer);
+				}
+
+				session.delete(producer);
+				
+				result = "deleted";
+
+				session.getTransaction().commit();
 			}
-			
-			session.delete(producer);
-			
-			session.getTransaction().commit();
-			
-			flag = true;
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+			else {
+				result = "producerNotFound";
+			}
+		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
-		return flag;
+		return result;
 	}
-	
+
 }

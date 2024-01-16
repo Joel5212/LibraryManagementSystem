@@ -16,14 +16,17 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import persistence.AuthorDataAccess;
+import validator.AuthorValidator;
 import javafx.beans.property.SimpleStringProperty;
 
 public class AuthorsController implements Initializable {
@@ -84,24 +87,18 @@ public class AuthorsController implements Initializable {
 		// TODO Auto-generated method stub
 		showAllAuthors();
 	}
-	
-	private void showAllAuthors()
-	{
+
+	private void showAllAuthors() {
 		ObservableList<Author> authors = null;
-		
-		if(cbLastNameAZ.isSelected() && !cbLastNameZA.isSelected())
-		{
+
+		if (cbLastNameAZ.isSelected() && !cbLastNameZA.isSelected()) {
 			authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("lastNameAZ"));
-		}
-		else if(cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected())
-		{
+		} else if (cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected()) {
 			authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("lastNameZA"));
-		}
-		else if(!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected())
-		{
+		} else if (!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected()) {
 			authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("none"));
 		}
-		
+
 		colAuthorId.setCellValueFactory(new PropertyValueFactory<Author, Integer>("authorId"));
 
 		colName.setCellValueFactory(cellData -> {
@@ -114,46 +111,35 @@ public class AuthorsController implements Initializable {
 
 		tvAuthors.setItems(authors);
 	}
-	
+
 	@FXML
 	private void showAllAuthorsAfterAction(ActionEvent event) {
 
 		ObservableList<Author> authors = null;
-		
-		if(event == null)
-		{
+
+		if (event == null) {
 			authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("none"));
-		}
-		else if(event.getSource() == cbLastNameAZ) {
-			if(!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected())
-			{
+		} else if (event.getSource() == cbLastNameAZ) {
+			if (!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected()) {
 				authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("none"));
-			}
-			else
-			{
+			} else {
 				authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("lastNameAZ"));
-				if(cbLastNameZA.isSelected())
-				{
+				if (cbLastNameZA.isSelected()) {
 					cbLastNameZA.setSelected(false);
 				}
 			}
-			
-		}  
-		else if(event.getSource() == cbLastNameZA)
-		{
-			if(!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected())
-			{
+
+		} else if (event.getSource() == cbLastNameZA) {
+			if (!cbLastNameZA.isSelected() && !cbLastNameAZ.isSelected()) {
 				authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("none"));
-			}
-			else {
+			} else {
 				authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("lastNameZA"));
-				if(cbLastNameAZ.isSelected())
-				{
+				if (cbLastNameAZ.isSelected()) {
 					cbLastNameAZ.setSelected(false);
 				}
 			}
 		}
-		
+
 		colAuthorId.setCellValueFactory(new PropertyValueFactory<Author, Integer>("authorId"));
 
 		colName.setCellValueFactory(cellData -> {
@@ -166,23 +152,16 @@ public class AuthorsController implements Initializable {
 
 		tvAuthors.setItems(authors);
 	}
-	
-//	@FXML 
-//	private void lastNameAZ()
-//	{
-//		authors = FXCollections.observableList(AuthorDataAccess.loadAllAuthors("lastNameZA"));
-//	}
-	
-	public void showAllBooksOfAuthor(Author author)
-	{
-		ObservableList<Book> books =  FXCollections.observableList(author.getBooks());
-		
+
+	public void showAllBooksOfAuthor(Author author) {
+		ObservableList<Book> books = FXCollections.observableList(author.getBooks());
+
 		colTitle.setCellValueFactory(new PropertyValueFactory<Item, String>("title"));
 		colLocation.setCellValueFactory(new PropertyValueFactory<Item, String>("location"));
 		colAvailable.setCellValueFactory(new PropertyValueFactory<Item, String>("isAvailable"));
 		colDailyPrice.setCellValueFactory(new PropertyValueFactory<Item, Double>("dailyPrice"));
 		colDescription.setCellValueFactory(new PropertyValueFactory<Item, String>("description"));
-		
+
 		tvBooks.setItems(books);
 	}
 
@@ -194,54 +173,104 @@ public class AuthorsController implements Initializable {
 		tfNationality.clear();
 		tfSubject.clear();
 
+		tvBooks.setItems(null);
 	}
 
 	@FXML
-	public void createAuthor() {
+	public void addAuthor() {
 		String firstName = tfFirstName.getText();
 		String lastName = tfLastName.getText();
 		String nationality = tfNationality.getText().isEmpty() ? null : tfNationality.getText();
 		String subject = tfSubject.getText().isEmpty() ? null : tfSubject.getText();
 
-		AuthorDataAccess.createAuthor(firstName, lastName, subject, nationality);
-		showAllAuthors();
-		clearFields();
+		Alert frontendAlert = AuthorValidator.frontendLoanValidatorForCreatingAndUpdatingAuthor(firstName, lastName, null);
+
+		if (frontendAlert == null) {
+			String result = AuthorDataAccess.createAuthor(firstName, lastName, subject, nationality);
+			Alert backendAlert = AuthorValidator.backendAuthorValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				showAllAuthors();
+				clearFields();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
 	public void deleteAuthor() {
-		Integer authorId = Integer.valueOf(tfAuthorId.getText());
-		AuthorDataAccess.deleteAuthor(authorId);
-		showAllAuthors();
-		clearFields();
+		String authorId = tfAuthorId.getText();
+
+		Alert frontendAlert = AuthorValidator.frontendLoanValidatorForSearchingAndDeletingAuthor(authorId);
+
+		if (frontendAlert == null) {
+			String result = AuthorDataAccess.deleteAuthor(Integer.valueOf(authorId));
+			Alert backendAlert = AuthorValidator.backendAuthorValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				showAllAuthors();
+				clearFields();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
-	
+
 	@FXML
 	public void searchAuthor() {
-		Integer authorId = Integer.valueOf(tfAuthorId.getText());
-		Author author = AuthorDataAccess.loadAuthor(authorId);
-		
-		tfFirstName.setText(author.getFirstName());
-		tfLastName.setText(author.getLastName());
-		tfNationality.setText(author.getNationality());
-		tfSubject.setText(author.getSubject());
-		
-		showAllBooksOfAuthor(author);
+		String authorId = tfAuthorId.getText();
+
+		Alert frontendAlert = AuthorValidator.frontendLoanValidatorForSearchingAndDeletingAuthor(authorId);
+
+		if (frontendAlert == null) {
+			
+			Author author = AuthorDataAccess.loadAuthor(Integer.valueOf(authorId));
+			Alert backendAlert = AuthorValidator.backendLoanValidatorForAuthorSearch(author);
+			if (backendAlert == null) {
+				tfFirstName.setText(author.getFirstName());
+				tfLastName.setText(author.getLastName());
+				tfNationality.setText(author.getNationality());
+				tfSubject.setText(author.getSubject());
+
+				showAllBooksOfAuthor(author);
+			}
+			else
+			{
+				backendAlert.showAndWait();
+			}
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
 	public void updateAuthor() {
-		Integer authorId = Integer.valueOf(tfAuthorId.getText());
+		String authorId = tfAuthorId.getText();
 		String firstName = tfFirstName.getText();
 		String lastName = tfLastName.getText();
 		String nationality = tfNationality.getText();
 		String subject = tfSubject.getText();
+		
+		Alert frontendAlert = AuthorValidator.frontendLoanValidatorForCreatingAndUpdatingAuthor(firstName, lastName, authorId);
 
-		AuthorDataAccess.updateAuthor(authorId, firstName, lastName, subject, nationality);
-		showAllAuthors();
-
+		if(frontendAlert == null)
+		{
+			String result = AuthorDataAccess.updateAuthor(Integer.valueOf(authorId), firstName, lastName, subject, nationality);
+			Alert backendAlert = AuthorValidator.backendAuthorValidator(result);
+			if(backendAlert.getAlertType() == AlertType.CONFIRMATION)
+			{
+				showAllAuthors();
+				clearFields();
+			}
+			backendAlert.showAndWait();
+		}
+		else
+		{
+			frontendAlert.showAndWait();
+		}
 	}
-	
+
 	@FXML
 	public void studentsPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Students.fxml"));
@@ -250,7 +279,7 @@ public class AuthorsController implements Initializable {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
+
 	@FXML
 	public void booksPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Books.fxml"));
@@ -259,7 +288,7 @@ public class AuthorsController implements Initializable {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
+
 	@FXML
 	public void producersPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Producers.fxml"));
@@ -268,7 +297,7 @@ public class AuthorsController implements Initializable {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
+
 	@FXML
 	public void documentariesPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Documentaries.fxml"));
@@ -277,7 +306,7 @@ public class AuthorsController implements Initializable {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
+
 	@FXML
 	public void loansPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Loans.fxml"));

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
@@ -15,45 +16,55 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class AuthorDataAccess {
-	public static Author createAuthor(String firstName, String lastName, String subject, String nationality) {
+	public static String createAuthor(String firstName, String lastName, String subject, String nationality) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Book.class)
-				.addAnnotatedClass(Author.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Author tempAuthor = null;
-		Session session = factory.getCurrentSession();
+				.addAnnotatedClass(Author.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
+		Author author = null;
+		String result = "";
+		Session session = null;
+		Transaction tx = null;
 
 		try {
-			session.beginTransaction();
 
-			tempAuthor = new Author(firstName, lastName, subject, nationality);
+			session = factory.getCurrentSession();
 
-			session.save(tempAuthor);
+			tx = session.beginTransaction();
+
+			author = new Author(firstName, lastName, subject, nationality);
+
+			session.save(author);
 
 			session.getTransaction().commit();
 
+			result = "created";
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
 			session.close();
 			factory.close();
 		}
-		return tempAuthor;
+		return result;
 	}
 
 	public static Author loadAuthor(int authorId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
+				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
-
-		Author tempAuthor = null;
+		Author author = null;
 
 		try {
-
 			session.beginTransaction();
 
-			tempAuthor = session.get(Author.class, authorId);
+			author = session.get(Author.class, authorId);
 
-			session.getTransaction().commit();
+			if (author != null) {
+				session.getTransaction().commit();
+			}
 
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
@@ -62,42 +73,13 @@ public class AuthorDataAccess {
 			session.close();
 			factory.close();
 		}
-		return tempAuthor;
+		return author;
 	}
-
-//	public static List<Integer> getBookList(int code) {
-//		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-//				.addAnnotatedClass(Book.class).buildSessionFactory();
-//		Session session = factory.getCurrentSession();
-//		List<Integer> bookIds = new ArrayList<Integer>();
-//
-//		try {
-//
-//			session.beginTransaction();
-//
-//			List<Book> books = session.get(Author.class, code).getBooks();
-//
-//			if (books != null) {
-//				for (Book book : books) {
-//					bookIds.add(book.getItemId());
-//				}
-//			}
-//
-//			session.getTransaction().commit();
-//
-//		} catch (Exception e) {
-//			System.out.println("Problem creating session factory");
-//			e.printStackTrace();
-//		} finally {
-//			factory.close();
-//
-//		}
-//		return bookIds;
-//	}
 
 	public static ObservableList<Author> loadAllAuthors(String orderBy) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
+				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
 		ObservableList<Author> authors = null;
 		Query query = null;
@@ -105,23 +87,21 @@ public class AuthorDataAccess {
 		try {
 
 			session.beginTransaction();
-			
-			if(orderBy.equals("lastNameAZ"))
-			{
-				 query = session.createQuery("select a from Author as a order by a.lastName asc");
-			}
-			else if(orderBy.equals("lastNameZA"))
-			{
+
+			if (orderBy.equals("lastNameAZ")) {
+				query = session.createQuery("select a from Author as a order by a.lastName asc");
+			} else if (orderBy.equals("lastNameZA")) {
 				query = session.createQuery("select a from Author as a order by a.lastName desc");
+			} else if (orderBy.equals("none")) {
+				query = session.createQuery("select a from Author as a order by a.authorId asc");
 			}
-			else if(orderBy.equals("none"))
-			{
-				query = session.createQuery("select a from Author as a");
-			}
-			
+
 			authors = FXCollections.observableArrayList(query.list());
 			
-			session.getTransaction().commit();
+			if(authors != null && !authors.isEmpty())
+			{
+				session.getTransaction().commit();
+			}
 
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
@@ -133,70 +113,95 @@ public class AuthorDataAccess {
 		return authors;
 	}
 
-	public static boolean updateAuthor(int authorId, String updatedFirstName, String updatedLastName, String updatedSubject,
-			String updatedNationality) {
+	public static String updateAuthor(int authorId, String updatedFirstName, String updatedLastName,
+			String updatedSubject, String updatedNationality) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
+		Session session = null;
 		Author author = null;
-		boolean flag = false;
+		String result = "";
+		Transaction tx = null;
 
 		try {
-			session.beginTransaction();
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			author = session.get(Author.class, authorId);
 
-			author.setFirstName(updatedFirstName);
-			author.setLastName(updatedLastName);
-			author.setSubject(updatedSubject);
-			author.setNationality(updatedNationality);
+			if (author != null) {
 
-			session.save(author);
+				author.setFirstName(updatedFirstName);
+				author.setLastName(updatedLastName);
+				author.setSubject(updatedSubject);
+				author.setNationality(updatedNationality);
 
-			session.getTransaction().commit();
+				session.save(author);
 
-			flag = true;
+				result = "updated";
+
+				session.getTransaction().commit();
+			} else {
+				result = "authorNotFound";
+			}
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
 			session.close();
 			factory.close();
 		}
-		return flag;
+		return result;
 	}
 
-	public static boolean deleteAuthor(int authorId) {
+	public static String deleteAuthor(int authorId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
-		boolean flag = true;
+				.addAnnotatedClass(Book.class).addAnnotatedClass(Student.class).addAnnotatedClass(Loan.class)
+				.buildSessionFactory();
+		Session session = null;
+		String result = "";
+		Author author = null;
+		Transaction tx = null;
 
 		try {
 
-			session.beginTransaction();
+			session = factory.getCurrentSession();
 
-			Author tempAuthor = session.get(Author.class, authorId);
-			
-			List<Book> books = tempAuthor.getBooks();
-			
-			for(Book book : books)
-			{
-				book.removeAuthor(tempAuthor);
+			tx = session.beginTransaction();
+
+			author = session.get(Author.class, authorId);
+
+			if (author != null) {
+
+				List<Book> books = author.getBooks();
+
+				for (Book book : books) {
+					book.removeAuthor(author);
+				}
+
+				session.delete(author);
+				
+				result = "deleted";
+
+				session.getTransaction().commit();
+			}
+			else {
+				result = "authorNotFound";
 			}
 
-			session.delete(tempAuthor);
-
-			session.getTransaction().commit();
-
 		} catch (Exception e) {
-			flag = false;
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
 			session.close();
 			factory.close();
 		}
-		return flag;
+		return result;
 	}
 }

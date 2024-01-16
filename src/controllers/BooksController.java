@@ -220,6 +220,10 @@ public class BooksController implements Initializable {
 		{
 			tvBooks.setItems(books);
 		}
+		else
+		{
+			tvBooks.setItems(null);
+		}
 	}
 
 	@FXML
@@ -393,8 +397,6 @@ public class BooksController implements Initializable {
 				}
 
 				lvAuthors.getSelectionModel().setSelectionMode(null);
-
-				showAllBooks();
 			}
 			else
 			{
