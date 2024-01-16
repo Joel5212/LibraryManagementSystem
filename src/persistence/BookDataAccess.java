@@ -1,13 +1,14 @@
 package persistence;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
@@ -19,18 +20,21 @@ import entity.Student;
 
 public class BookDataAccess {
 
-	public static boolean createBook(String title, String description, String location, BigDecimal dailyPrice,
-			int numberPages, String publisher, Date publicationDate, List<Author> authors) {
+	public static String createBook(String title, String description, String location, BigDecimal dailyPrice,
+			Integer numberOfPages, String publisher, Date publicationDate, List<Author> authors) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Book.class)
 				.addAnnotatedClass(Author.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		boolean flag = false;
-		Session session = factory.getCurrentSession();
+		String result = "";
+		Session session = null;
+		Transaction tx = null;
 
 		try {
+			
+			session = factory.getCurrentSession();
 
-			session.beginTransaction();
+			tx = session.beginTransaction();
 
-			Book book = new Book(true, title, description, location, dailyPrice, numberPages, publisher,
+			Book book = new Book(true, title, description, location, dailyPrice, numberOfPages, publisher,
 					publicationDate);
 
 			book.setAuthors(authors.stream().map(author -> {
@@ -41,19 +45,21 @@ public class BookDataAccess {
 			session.save(book);
 
 			session.getTransaction().commit();
-
-			flag = true;
+			
+			result = "created";
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 
-	public static Book loadBook(int bookId) {
+	public static Book loadBook(Integer bookId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
 				.addAnnotatedClass(Book.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
 		Session session = factory.getCurrentSession();
@@ -65,48 +71,21 @@ public class BookDataAccess {
 			session.beginTransaction();
 
 			book = session.get(Book.class, bookId);
-
-			session.getTransaction().commit();
+			
+			if(book != null)
+			{
+				session.getTransaction().commit();
+			}
 
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return book;
 	}
-
-//	public static Map<Integer, Author> getAuthorIds(int code) {
-//		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-//				.addAnnotatedClass(Book.class).buildSessionFactory();
-//		Session session = factory.getCurrentSession();
-//		List<Integer> authorIds = new ArrayList<Integer>();
-//
-//		try {
-//
-//			session.beginTransaction();
-//
-//			List<Author> authors = session.get(Book.class, code).getAuthors();
-//
-//			if (authors != null) {
-//				for (Author author : authors) {
-//					authorIds.add(author.getAuthorId());
-//				}
-//			}
-//
-//			session.getTransaction().commit();
-//
-//		} catch (Exception e) {
-//			System.out.println("Problem creating session factory");
-//			e.printStackTrace();
-//		} finally {
-//			factory.close();
-//
-//		}
-//		return authorIds;
-//	}
 
 	public static List<Book> loadAllBooks(String orderBy) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
@@ -140,172 +119,152 @@ public class BookDataAccess {
 			}
 
 			books = query.list();
-
-			session.getTransaction().commit();
-
+			
+			if (books != null && !books.isEmpty()) {
+				session.getTransaction().commit();
+			}
+			
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return books;
 	}
 
-	public static Map<Integer, String> getAuthorsOfBook(int code) {
+	public static Map<Integer, String> loadAuthorsOfBook(int bookId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
 				.addAnnotatedClass(Book.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
 		Session session = factory.getCurrentSession();
-
 		Map<Integer, String> authorsMap = null;
-		List<Author> authorsList = null;
+		List<Author> authors = null;
 
 		try {
 
 			session.beginTransaction();
 
-			authorsList = session.get(Book.class, code).getAuthors();
+			authors = session.get(Book.class, bookId).getAuthors();
 
-			if (authorsList != null) {
-				for (Author author : authorsList) {
+			if (authors != null) {
+				for (Author author : authors) {
 					authorsMap.put(author.getAuthorId(), author.getFirstName() + author.getLastName());
 				}
+				session.getTransaction().commit();
 			}
-
-			session.getTransaction().commit();
 
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return authorsMap;
 	}
 
-//	public static Map<Integer, String> loadAllAuthors() {
-//
-//		Map<Integer, String> authorsMap = new HashMap<Integer, String>();
-//		List<Author> authorsList = null;
-//
-//		try {
-//
-//			authorsList = AuthorDataAccess.loadAllAuthors("lastName");
-//
-//			if (authorsList != null) {
-//				for (Author author : authorsList) {
-//					authorsMap.put(author.getAuthorId(), author.getLastName() + ", " + author.getFirstName());
-//				}
-//			}
-//
-//		} catch (Exception e) {
-//			System.out.println("Problem creating session factory");
-//			e.printStackTrace();
-//		}
-//		return authorsMap;
-//	}
-
-	public static boolean updateBook(int bookId, String updatedTitle, String updatedDescription, String updatedLocation,
-			BigDecimal updatedDailyPrice, int updatedNumberOfPages, String updatedPublisher, Date updatedPublicationDate,
+	public static String updateBook(Integer bookId, String updatedTitle, String updatedDescription, String updatedLocation,
+			BigDecimal updatedDailyPrice, Integer updatedNumberOfPages, String updatedPublisher, Date updatedPublicationDate,
 			List<Author> updatedAuthors) {
-
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
 				.addAnnotatedClass(Book.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
-		boolean flag = false;
+		Session session = null;
+		Transaction tx = null;
+		String result = "";;
 
 		try {
-			session.beginTransaction();
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			Book book = session.get(Book.class, bookId);
-
-			book.setAuthors(updatedAuthors.stream().map(author -> {
-				author.addBook(book);
-				return author;
-			}).collect(Collectors.toList()));
 			
-			book.setTitle(updatedTitle);
-			book.setDescription(updatedDescription);
-			book.setLocation(updatedLocation);
-			book.setDailyPrice(updatedDailyPrice);
-			book.setNumberPages(updatedNumberOfPages);
-			book.setPublisher(updatedPublisher);
-			book.setPublicationDate(updatedPublicationDate);
+			if(book != null)
+			{
+				book.setAuthors(updatedAuthors.stream().map(author -> {
+					author.addBook(book);
+					return author;
+				}).collect(Collectors.toList()));
+				
+				book.setTitle(updatedTitle);
+				book.setDescription(updatedDescription);
+				book.setLocation(updatedLocation);
+				book.setDailyPrice(updatedDailyPrice);
+				book.setNumberOfPages(updatedNumberOfPages);
+				book.setPublisher(updatedPublisher);
+				book.setPublicationDate(updatedPublicationDate);
 
-			session.saveOrUpdate(book);
+				session.saveOrUpdate(book);
 
-			session.getTransaction().commit();
-
-			flag = true;
+				session.getTransaction().commit();
+				
+				result = "updated";
+			}
+			else
+			{
+				result = "bookNotFound";
+			}
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 
-	public static Book deleteBook(int bookId) {
+	public static String deleteBook(int bookId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
 				.addAnnotatedClass(Book.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+		Session session = null;
+		Transaction tx = null;
 		Book book = null;
-
+		String result = "";
+		
 		try {
 
-			session.beginTransaction();
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			book = session.get(Book.class, bookId);
+			
+			if(book != null)
+			{
+				
+				if(book.getAuthors() != null && !book.getAuthors().isEmpty())
+				{
+					book.removeAuthors();
+				}
+				
+				if(book.getLoan() != null)
+				{
+					book.removeLoanData();
+				}
+				
+				session.delete(book);
 
-			session.delete(book);
-
-			session.getTransaction().commit();
-
-		} catch (Exception e) {
-			System.out.println("Problem creating session factory");
-			e.printStackTrace();
-		} finally {
-			factory.close();
-
-		}
-		return book;
-	}
-
-	public static boolean returnBook(int bookId) {
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Author.class)
-				.addAnnotatedClass(Book.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
-		Item tempBook = null;
-		boolean flag = false;
-
-		try {
-
-			session.beginTransaction();
-
-			tempBook = session.get(Book.class, bookId);
-
-			if (tempBook == null) {
-				System.out.println("Book ID does not match with any existing book");
-				return flag;
+				session.getTransaction().commit();
+				
+				result = "deleted";
 			}
-
-			tempBook.setIsAvailable(true);
-
-			session.getTransaction().commit();
-
-			flag = true;
-
+			else
+			{
+				result = "bookNotFound";
+			}
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 }

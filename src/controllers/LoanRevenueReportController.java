@@ -1,10 +1,15 @@
 package controllers;
 
+import java.math.BigDecimal;
 import java.net.URL;
+import java.util.Date;
 import java.util.ResourceBundle;
 
+import entity.Loan;
 import entity.LoanComplete;
+import entity.LoanReport;
 import helpers.DateHelper;
+import helpers.LoanCalcHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,103 +24,192 @@ import javafx.stage.Stage;
 import persistence.LoanDataAccess;
 
 public class LoanRevenueReportController implements Initializable {
-	
+
 	private Stage stage;
 	private Scene scene;
 	private Parent root;
-	
+
 	@FXML
 	private TableView tvLoanReport;
 	@FXML
-	private TableColumn<LoanComplete, Integer> colLoanId;
+	private TableColumn<LoanReport, Integer> colLoanId;
 	@FXML
-	private TableColumn<LoanComplete, String> colItem;
+	private TableColumn<LoanReport, String> colItem;
 	@FXML
-	private TableColumn<LoanComplete, String> colStudent;
+	private TableColumn<LoanReport, String> colStudent;
 	@FXML
-	private TableColumn<LoanComplete, String> colDailyPrice;
+	private TableColumn<LoanReport, String> colDailyPrice;
 	@FXML
-	private TableColumn<LoanComplete, String> colStartDate;
+	private TableColumn<LoanReport, String> colStartDate;
 	@FXML
-	private TableColumn<LoanComplete, String> colDueDate;
+	private TableColumn<LoanReport, String> colDueDate;
 	@FXML
-	private TableColumn<LoanComplete, String> colReturnedDate;
+	private TableColumn<LoanReport, String> colReturnedDate;
 	@FXML
-	private TableColumn<LoanComplete, Integer> colDaysOverdue;
+	private TableColumn<LoanReport, Integer> colDaysOverdue;
 	@FXML
-	private TableColumn<LoanComplete, String> colOverdueFine;
+	private TableColumn<LoanReport, String> colOverdueFine;
 	@FXML
-	private TableColumn<LoanComplete, String> colTotalPayment;
-	
-//	public void showRevenueReport(ObservableList<Loan> loans) {
-//
-//		if (loans != null) {
-//			colLoanId.setCellValueFactory(cellData -> {
-//				return new SimpleStringProperty(cellData.getValue().getLoanId().toString());
-//			});
-//			colItem.setCellValueFactory(cellData -> {
-//				String item = cellData.getValue().getItem().getTitle() + " ("
-//						+ cellData.getValue().getItem().getItemId() + ") ";
-//				return new SimpleStringProperty(cellData.getValue().getItem() != null ? item : "");
-//			});
-//			colStudent.setCellValueFactory(cellData -> {
-//				String student = cellData.getValue().getStudent().getName() + " ("
-//						+ cellData.getValue().getStudent().getStudentId() + ") ";
-//				return new SimpleStringProperty(
-//						cellData.getValue().getStudent() != null ? student : "");
-//			});
-//			colStartDate.setCellValueFactory(cellData -> {
-//				return new SimpleStringProperty(LoanCalcHelper.dateToYYYYMMddDate(cellData.getValue().getStartDate()));
-//			});
-//			colDueDate.setCellValueFactory(cellData -> {
-//				return new SimpleStringProperty(LoanCalcHelper.dateToYYYYMMddDate(cellData.getValue().getDueDate()));
-//			});
-//			colDailyPrice.setCellValueFactory(cellData -> {
-//				return new SimpleStringProperty("$" + cellData.getValue().getItem().getDailyPrice().toString());
-//			});
-//			colStatus.setCellValueFactory(cellData -> {
-//				return new SimpleStringProperty(cellData.getValue().isOverdue() ? "Overdue" : "Ongoing");
-//			});
-//
-//			tvLoans.setItems(loans);
-//		}
-//	}
+	private TableColumn<LoanReport, String> colTotalPayment;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		// TODO Auto-generated method stub
-		
-		ObservableList<LoanComplete> loanRevenueReport = FXCollections.observableList(LoanDataAccess.loadCompletedLoansForRevenueReport());
-		
-		System.out.println(loanRevenueReport.get(0));
-		
-		if (loanRevenueReport != null) {
-			colLoanId.setCellValueFactory(new PropertyValueFactory<LoanComplete, Integer>("loanId"));
-			colItem.setCellValueFactory(new PropertyValueFactory<LoanComplete, String>("item"));
-			colStudent.setCellValueFactory(new PropertyValueFactory<LoanComplete, String>("student"));
+
+		ObservableList<LoanComplete> loansComplete = LoanDataAccess.loadCompletedLoansForRevenueReport();
+
+		ObservableList<Loan> loans = LoanDataAccess.loadLoans(false);
+
+		ObservableList<LoanReport> loansRevenueReport = FXCollections.observableArrayList();
+
+		if (!loansComplete.isEmpty() && loans.isEmpty()) {
+			for (LoanComplete loanComplete : loansComplete) {
+				LoanReport loanReport = new LoanReport();
+				loanReport.setLoanId(loanComplete.getLoanId());
+				loanReport.setItem(loanComplete.getItem());
+				loanReport.setStudent(loanComplete.getStudent());
+				loanReport.setStartDate(loanComplete.getStartDate());
+				loanReport.setDueDate(loanComplete.getDueDate());
+				loanReport.setReturnedDate(loanComplete.getReturnedDate());
+				BigDecimal dailyPrice = loanComplete.getDailyPrice();
+				loanReport.setDailyPrice(dailyPrice);
+				Integer daysOverdue = LoanCalcHelper.daysOverdue(loanComplete.getDueDate());
+				loanReport.setDaysOverdue(daysOverdue);
+				loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
+				loansRevenueReport.add(loanReport);
+			}
+		} else if (loansComplete.isEmpty() && !loans.isEmpty()) {
+			for (Loan loan : loans) {
+				LoanReport loanReport = new LoanReport();
+				loanReport.setLoanId(loan.getLoanId());
+				loanReport.setItem(loan.getItem().getTitle() + " (" + loan.getItem().getItemId() + ") ");
+				loanReport.setStudent(loan.getStudent().getName() + " (" + loan.getStudent().getStudentId() + ") ");
+				loanReport.setStartDate(loan.getStartDate());
+				loanReport.setDueDate(loan.getDueDate());
+				loanReport.setReturnedDate(null);
+				BigDecimal dailyPrice = loan.getItem().getDailyPrice();
+				loanReport.setDailyPrice(dailyPrice);
+				Integer daysOverdue = LoanCalcHelper.daysOverdue(loan.getDueDate());
+				loanReport.setDaysOverdue(daysOverdue);
+				loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
+				loansRevenueReport.add(loanReport);
+			}
+		} else {
+			int i = 0;
+			int j = 0;
+			while ((i < loans.size() && j < loansComplete.size())) {
+				if (loans.get(i).getLoanId() < loansComplete.get(j).getLoanId()) {
+					LoanReport loanReport = new LoanReport();
+					loanReport.setLoanId(loans.get(i).getLoanId());
+					loanReport.setItem(
+							loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
+					loanReport.setStudent(loans.get(i).getStudent().getName() + " ("
+							+ loans.get(i).getStudent().getStudentId() + ") ");
+					Date startDate = loans.get(i).getStartDate();
+					loanReport.setStartDate(startDate);
+					Date dueDate = loans.get(i).getDueDate();
+					loanReport.setDueDate(dueDate);
+					loanReport.setReturnedDate(null);
+					BigDecimal dailyPrice = loans.get(i).getItem().getDailyPrice();
+					loanReport.setDailyPrice(dailyPrice);
+					Integer daysOverdue = LoanCalcHelper.daysOverdue(loans.get(i).getDueDate());
+					loanReport.setDaysOverdue(daysOverdue);
+					loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
+					loanReport.setTotalPayment(LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice));
+					loansRevenueReport.add(loanReport);
+
+					i++;
+				} else if (loans.get(i).getLoanId() > loansComplete.get(j).getLoanId()) {
+					LoanReport loanReport = new LoanReport();
+					loanReport.setLoanId(loansComplete.get(j).getLoanId());
+					loanReport.setItem(loansComplete.get(j).getItem());
+					loanReport.setStudent(loansComplete.get(j).getStudent());
+					loanReport.setStartDate(loansComplete.get(j).getStartDate());
+					loanReport.setDueDate(loansComplete.get(j).getDueDate());
+					loanReport.setReturnedDate(loansComplete.get(j).getReturnedDate());
+					loanReport.setDailyPrice(loansComplete.get(j).getDailyPrice());
+					loanReport.setDaysOverdue(loansComplete.get(j).getDaysOverdue());
+					loanReport.setOverdueFine(loansComplete.get(j).getOverdueFine());
+					loanReport.setTotalPayment(loansComplete.get(j).getTotalPayment());
+					loansRevenueReport.add(loanReport);
+
+					j++;
+				}
+			}
+			
+			while (i < loans.size()) {
+				LoanReport loanReport = new LoanReport();
+				loanReport.setLoanId(loans.get(i).getLoanId());
+				loanReport.setItem(
+						loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
+				loanReport.setStudent(loans.get(i).getStudent().getName() + " ("
+						+ loans.get(i).getStudent().getStudentId() + ") ");
+				Date startDate = loans.get(i).getStartDate();
+				loanReport.setStartDate(startDate);
+				Date dueDate = loans.get(i).getDueDate();
+				loanReport.setDueDate(dueDate);
+				loanReport.setReturnedDate(null);
+				BigDecimal dailyPrice = loans.get(i).getItem().getDailyPrice();
+				loanReport.setDailyPrice(dailyPrice);
+				Integer daysOverdue = LoanCalcHelper.daysOverdue(loans.get(i).getDueDate());
+				loanReport.setDaysOverdue(daysOverdue);
+				loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
+				loanReport.setTotalPayment(LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice));
+				loansRevenueReport.add(loanReport);
+
+				i++;
+			}
+			
+			while(j < loansComplete.size())
+			{
+				LoanReport loanReport = new LoanReport();
+				loanReport.setLoanId(loansComplete.get(j).getLoanId());
+				loanReport.setItem(loansComplete.get(j).getItem());
+				loanReport.setStudent(loansComplete.get(j).getStudent());
+				loanReport.setStartDate(loansComplete.get(j).getStartDate());
+				loanReport.setDueDate(loansComplete.get(j).getDueDate());
+				loanReport.setReturnedDate(loansComplete.get(j).getReturnedDate());
+				loanReport.setDailyPrice(loansComplete.get(j).getDailyPrice());
+				loanReport.setDaysOverdue(loansComplete.get(j).getDaysOverdue());
+				loanReport.setOverdueFine(loansComplete.get(j).getOverdueFine());
+				loansRevenueReport.add(loanReport);
+
+				j++;
+			}
+		}
+
+		if (loansRevenueReport != null && !loansRevenueReport.isEmpty()) {
+			colLoanId.setCellValueFactory(new PropertyValueFactory<LoanReport, Integer>("loanId"));
+			colItem.setCellValueFactory(new PropertyValueFactory<LoanReport, String>("item"));
+			colStudent.setCellValueFactory(new PropertyValueFactory<LoanReport, String>("student"));
 			colStartDate.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getStartDate()));
 			});
 			colDueDate.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getDueDate()));
 			});
-			colReturnedDate.setCellValueFactory(cellData -> {
-				return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getReturnedDate()));
-			});
 			colDailyPrice.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty("$" + cellData.getValue().getDailyPrice());
 			});
-			colDaysOverdue.setCellValueFactory(new PropertyValueFactory<LoanComplete, Integer>("daysOverdue"));
+			colReturnedDate.setCellValueFactory(cellData -> {
+				Date returnedDate = cellData.getValue().getReturnedDate();
+
+				if (returnedDate != null) {
+					return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(returnedDate));
+				}
+				return null;
+
+			});
+			colDaysOverdue.setCellValueFactory(new PropertyValueFactory<LoanReport, Integer>("daysOverdue"));
 			colOverdueFine.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty("$" + cellData.getValue().getOverdueFine());
 			});
 			colTotalPayment.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty("$" + cellData.getValue().getTotalPayment());
 			});
-			
-			tvLoanReport.setItems((ObservableList) loanRevenueReport);
+
+			tvLoanReport.setItems(loansRevenueReport);
 		}
-		
+
 	}
 
 }

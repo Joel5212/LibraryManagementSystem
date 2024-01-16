@@ -6,7 +6,7 @@ import java.util.List;
 import entity.Loan;
 import helpers.LoanCalcHelper;
 import helpers.DateHelper;
-import helpers.IntegerHelper;
+import helpers.NumberHelper;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -32,13 +32,13 @@ public class LoanValidator {
 			alert.setHeaderText("Error!");
 			alert.setContentText("Select a Due Date!");
 			return alert;
-		} else if (!itemId.isEmpty() && !IntegerHelper.isNumeric(itemId)) {
+		} else if (!itemId.isEmpty() && !NumberHelper.isNumeric(itemId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Item Id has to be numeric!");
 			return alert;
 
-		} else if (!studentId.isEmpty() && !IntegerHelper.isNumeric(studentId)) {
+		} else if (!studentId.isEmpty() && !NumberHelper.isNumeric(studentId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setContentText("Student Id has to be numeric!");
@@ -68,17 +68,17 @@ public class LoanValidator {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("All fields for searching are empty!");
-		} else if (loanId != null && !IntegerHelper.isNumeric(loanId)) {
+		} else if (loanId != null && !NumberHelper.isNumeric(loanId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan Id has to be numeric!");
 			return alert;
-		} else if (itemId != null && !IntegerHelper.isNumeric(itemId)) {
+		} else if (itemId != null && !NumberHelper.isNumeric(itemId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setContentText("Item Id has to be numeric!");
 			return alert;
-		} else if (studentId != null && !IntegerHelper.isNumeric(studentId)) {
+		} else if (studentId != null && !NumberHelper.isNumeric(studentId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setContentText("Student Id has to be numeric!");
@@ -96,7 +96,7 @@ public class LoanValidator {
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan Id field is empty!");
 		}
-		else if (loanId != null && !IntegerHelper.isNumeric(loanId)) {
+		else if (loanId != null && !NumberHelper.isNumeric(loanId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan Id has to be numeric!");
@@ -114,7 +114,7 @@ public class LoanValidator {
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan Id field is empty!");
 		}
-		else if (loanId != null && !IntegerHelper.isNumeric(loanId)) {
+		else if (loanId != null && !NumberHelper.isNumeric(loanId)) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan Id has to be numeric!");
@@ -207,7 +207,7 @@ public class LoanValidator {
 
 		Alert alert = null;
 
-		if (loans == null) {
+		if (loans == null || loans.isEmpty()) {
 			alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Loan(s) not found using Student Id!");

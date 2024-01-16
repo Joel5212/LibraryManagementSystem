@@ -1,5 +1,6 @@
 package entity;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class LoanReport {
@@ -16,16 +17,16 @@ public class LoanReport {
 
 	private Date returnedDate;
 
-	private Double dailyPrice;
+	private BigDecimal dailyPrice;
 
-	private Double totalPayment;
+	private BigDecimal totalPayment;
 
 	private Integer daysOverdue;
 
-	private Double overdueFine;
+	private BigDecimal overdueFine;
 
 	public LoanReport(Integer loanId, String item, String student, Date startDate, Date dueDate, Date returnedDate,
-			Double dailyPrice, Double totalPayment, Integer daysOverdue, Double overdueFine) {
+			BigDecimal dailyPrice, BigDecimal totalPayment, Integer daysOverdue, BigDecimal overdueFine) {
 		super();
 		this.loanId = loanId;
 		this.item = item;
@@ -51,11 +52,11 @@ public class LoanReport {
 		this.daysOverdue = daysOverdue;
 	}
 
-	public Double getOverdueFine() {
+	public BigDecimal getOverdueFine() {
 		return overdueFine;
 	}
 
-	public void setOverdueFine(Double overdueFine) {
+	public void setOverdueFine(BigDecimal overdueFine) {
 		this.overdueFine = overdueFine;
 	}
 
@@ -107,19 +108,19 @@ public class LoanReport {
 		this.returnedDate = returnedDate;
 	}
 
-	public Double getDailyPrice() {
+	public BigDecimal getDailyPrice() {
 		return dailyPrice;
 	}
 
-	public void setDailyPrice(Double dailyPrice) {
+	public void setDailyPrice(BigDecimal dailyPrice) {
 		this.dailyPrice = dailyPrice;
 	}
 
-	public Double getTotalPayment() {
+	public BigDecimal getTotalPayment() {
 		return totalPayment;
 	}
 
-	public void setTotalPayment(Double totalPayment) {
+	public void setTotalPayment(BigDecimal totalPayment) {
 		this.totalPayment = totalPayment;
 	}
 

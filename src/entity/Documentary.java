@@ -21,7 +21,7 @@ import javax.persistence.Table;
 public class Documentary extends Item
 {	
 	@Column(name = "length")
-	private int length;
+	private Integer length;
 	
 	@Column(name = "release_date")
 	private Date releaseDate;
@@ -35,7 +35,7 @@ public class Documentary extends Item
 	private List<Producer> producers;
 	
 	public Documentary(boolean isAvailable, String title, String description, 
-					   String location, BigDecimal dailyPrice, int length, Date releaseDate)
+					   String location, BigDecimal dailyPrice, Integer length, Date releaseDate)
 	{
 		super(isAvailable, title, description, location, dailyPrice);
 	    this.length = length;
@@ -46,11 +46,11 @@ public class Documentary extends Item
 		
 	}
 
-	public int getLength() {
+	public Integer getLength() {
 		return length;
 	}
 
-	public void setLength(int length) {
+	public void setLength(Integer length) {
 		this.length = length;
 	}
 
@@ -98,14 +98,3 @@ public class Documentary extends Item
 
 	}
 }
-
-/* ITEM ATTRIBUTES
-code-
-title-
-description-
-location-
-dailyPrice-
-status-
-returnItem()
-updateItemAvailability()
-*/

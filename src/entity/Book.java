@@ -19,7 +19,7 @@ import javax.persistence.Table;
 @PrimaryKeyJoinColumn(name = "item_id")
 public class Book extends Item {
 	@Column(name = "number_pages")
-	private int numberPages;
+	private Integer numberOfPages;
 
 	@ManyToMany(fetch=FetchType.EAGER)
 	@JoinTable(name = "book_author", joinColumns = { @JoinColumn(name = "item_id") }, inverseJoinColumns = {
@@ -37,19 +37,19 @@ public class Book extends Item {
 	}
 
 	public Book(boolean isAvailable, String title, String description, String location, BigDecimal dailyPrice,
-			int numberPages, String publisher, Date publicationDate) {
+			Integer numberOfPages, String publisher, Date publicationDate) {
 		super(isAvailable, title, description, location, dailyPrice);
-		this.numberPages = numberPages;
+		this.numberOfPages = numberOfPages;
 		this.publisher = publisher;
 		this.publicationDate = publicationDate;
 	}
 
-	public int getNumberPages() {
-		return numberPages;
+	public Integer getNumberOfPages() {
+		return numberOfPages;
 	}
 
-	public void setNumberPages(int numberPages) {
-		this.numberPages = numberPages;
+	public void setNumberOfPages(Integer numberOfPages) {
+		this.numberOfPages = numberOfPages;
 	}
 
 	public List<Author> getAuthors() {
@@ -83,9 +83,14 @@ public class Book extends Item {
 	public void removeAuthor(Author author) {
 		authors.remove(author);
 	}
-
-	// @Override TODO: remove comment when superclass is implemented
-//	public String toString() {
-//		return;
-//	}
+	
+	public void removeAuthors() {
+		
+		for(Author author : this.authors)
+		{
+			author.removeBook(this);
+		}
+		
+		setAuthors(null);
+	}
 }

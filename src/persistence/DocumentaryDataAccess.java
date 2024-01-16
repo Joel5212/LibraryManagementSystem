@@ -1,7 +1,7 @@
 package persistence;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
@@ -20,19 +21,24 @@ import entity.Producer;
 import entity.Student;
 
 public class DocumentaryDataAccess {
-	
-	public static boolean createDocumentary(String title, String description, String location, BigDecimal dailyPrice,
-			int length, Date releaseDate, List<Producer> producers) {
+
+	public static String createDocumentary(String title, String description, String location, BigDecimal dailyPrice,
+			Integer length, Date releaseDate, List<Producer> producers) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class)
-				.addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		boolean flag = false;
-		Session session = factory.getCurrentSession();
+				.addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
+		String result = "";
+		Session session = null;
+		Transaction tx = null;
 
 		try {
 
-			session.beginTransaction();
+			session = factory.getCurrentSession();
 
-			Documentary documentary = new Documentary(true, title, description, location, dailyPrice, length, releaseDate);
+			tx = session.beginTransaction();
+
+			Documentary documentary = new Documentary(true, title, description, location, dailyPrice, length,
+					releaseDate);
 
 			documentary.setProducers(producers.stream().map(producer -> {
 				producer.addDocumentary(documentary);
@@ -43,45 +49,50 @@ public class DocumentaryDataAccess {
 
 			session.getTransaction().commit();
 
-			flag = true;
+			result = "created";
+		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
+		} finally {
+			session.close();
+			factory.close();
+		}
+		return result;
+	}
+
+	public static Documentary loadDocumentary(int documentaryId) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class)
+				.addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
+		Session session = factory.getCurrentSession();
+
+		Documentary documentary = null;
+
+		try {
+			session.beginTransaction();
+
+			documentary = session.get(Documentary.class, documentaryId);
+
+			if (documentary != null) {
+				session.getTransaction().commit();
+			}
+
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
-		}
-		return flag;
-	}
-	
-	public static Documentary loadDocumentary(int documentaryId)
-	{
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
-		Documentary documentary = null;
-		
-		try
-		{
-			session.beginTransaction();
-			
-			documentary = session.get(Documentary.class, documentaryId);
-			
-			session.getTransaction().commit();
-		
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
-		} finally {
-			factory.close();
-		
 		}
 		return documentary;
 	}
-	
+
 	public static List<Documentary> loadAllDocumentaries(String orderBy) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Producer.class)
-				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
+				.addAnnotatedClass(Documentary.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
 		List<Documentary> documentaries = null;
 		Query query = null;
@@ -96,17 +107,17 @@ public class DocumentaryDataAccess {
 				query = session.createQuery("select d from Documentary as d order by d.title asc");
 			} else if (orderBy.equals("titleZA")) {
 				query = session.createQuery("select d from Documentary as d order by d.title desc");
-			} else if(orderBy.equals("priceHL"))
-			{	query = session.createQuery("select d from Documentary as d order by d.dailyPrice desc");
-			} else if(orderBy.equals("priceLH")){
+			} else if (orderBy.equals("priceHL")) {
+				query = session.createQuery("select d from Documentary as d order by d.dailyPrice desc");
+			} else if (orderBy.equals("priceLH")) {
 				query = session.createQuery("select d from Documentary as d order by d.dailyPrice asc");
-			} else if(orderBy.equals("titleAZ AND priceHL")) {
+			} else if (orderBy.equals("titleAZ AND priceHL")) {
 				query = session.createQuery("select d from Documentary as d order by d.title asc, d.dailyPrice desc");
-			} else if(orderBy.equals("titleZA AND priceLH")) {
+			} else if (orderBy.equals("titleZA AND priceLH")) {
 				query = session.createQuery("select d from Documentary as d order by d.title desc, d.dailyPrice asc");
-			} else if(orderBy.equals("titleAZ AND priceLH")) {
+			} else if (orderBy.equals("titleAZ AND priceLH")) {
 				query = session.createQuery("select d from Documentary as d order by d.title asc, d.dailyPrice asc");
-			} else if(orderBy.equals("titleZA AND priceHL")) {
+			} else if (orderBy.equals("titleZA AND priceHL")) {
 				query = session.createQuery("select d from Documentary as d order by d.title desc, d.dailyPrice desc");
 			}
 
@@ -118,45 +129,43 @@ public class DocumentaryDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return documentaries;
 	}
-	
-	public static Map<Integer, String> getProducersOfDocumentary(int code){
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
+
+	public static Map<Integer, String> loadProducersOfDocumentary(int code) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class)
+				.addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
-		
 		Map<Integer, String> producersMap = null;
-		List<Producer> producersList = null;
-		
-		try
-		{
-			
+		List<Producer> producers = null;
+
+		try {
+
 			session.beginTransaction();
 
-			producersList = session.get(Documentary.class, code).getProducers();
+			producers = session.get(Documentary.class, code).getProducers();
 
-			if (producersList != null) {
-				for (Producer producer : producersList) {
+			if (producers != null) {
+				for (Producer producer : producers) {
 					producersMap.put(producer.getProducerId(), producer.getFirstName() + producer.getLastName());
 				}
+				session.getTransaction().commit();
 			}
 
-			session.getTransaction().commit();
-		
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
 		return producersMap;
 	}
-	
+
 //	public static List<DocumentaryDataAccess> getProducerList(int code){
 //		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(DocumentaryDataAccess.class).buildSessionFactory();
 //		Session session = factory.getCurrentSession();
@@ -181,80 +190,108 @@ public class DocumentaryDataAccess {
 //		}
 //		return producers;
 //	}
-	
-	public static boolean updateDocumentary(int documentaryId, boolean updatedAvailability, String updatedTitle, String updatedDescription, 
-			   String updatedLocation, BigDecimal updatedDailyPrice, int updatedLength, Date updatedReleaseDate, List<Producer> updatedProducers)
-	{
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
-		boolean flag = false;
-		
-		try
-		{
-			
-			session.beginTransaction();
+
+	public static String updateDocumentary(Integer documentaryId, String updatedTitle,
+			String updatedDescription, String updatedLocation, BigDecimal updatedDailyPrice, Integer updatedLength,
+			Date updatedReleaseDate, List<Producer> updatedProducers) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class)
+				.addAnnotatedClass(Producer.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
+		Session session = null;
+		Transaction tx = null;
+		String result = "";
+
+		try {
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			Documentary documentary = session.get(Documentary.class, documentaryId);
 
-			documentary.setProducers(updatedProducers.stream().map(producer -> {
-				producer.addDocumentary(documentary);
-				return producer;
-			}).collect(Collectors.toList()));
-			
-			documentary.setIsAvailable(updatedAvailability);
-			documentary.setTitle(updatedTitle);
-			documentary.setDescription(updatedDescription);
-			documentary.setLocation(updatedLocation);
-			documentary.setDailyPrice(updatedDailyPrice);
-			documentary.setLength(updatedLength);
-			documentary.setReleaseDate(updatedReleaseDate);
+			if (documentary != null) {
+				documentary.setProducers(updatedProducers.stream().map(producer -> {
+					producer.addDocumentary(documentary);
+					return producer;
+				}).collect(Collectors.toList()));
 
-			session.saveOrUpdate(documentary);
+				documentary.setTitle(updatedTitle);
+				documentary.setDescription(updatedDescription);
+				documentary.setLocation(updatedLocation);
+				documentary.setDailyPrice(updatedDailyPrice);
+				documentary.setLength(updatedLength);
+				documentary.setReleaseDate(updatedReleaseDate);
 
-			session.getTransaction().commit();
-			
-			flag = true;
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+				session.saveOrUpdate(documentary);
+
+				session.getTransaction().commit();
+
+				result = "updated";
+			}
+			else
+			{
+				result = "documentaryNotFound";
+			}
+		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
-		return flag;
+		return result;
 	}
-	
-	public static boolean deleteDocumentary(int documentaryId)
-	{
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class).addAnnotatedClass(Loan.class).addAnnotatedClass(Producer.class).addAnnotatedClass(Student.class).buildSessionFactory();
+
+	public static String deleteDocumentary(int documentaryId) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Documentary.class)
+				.addAnnotatedClass(Loan.class).addAnnotatedClass(Producer.class).addAnnotatedClass(Student.class)
+				.buildSessionFactory();
 		Session session = factory.getCurrentSession();
 		Documentary documentary = null;
-		boolean flag = false;
-		
-		try
-		{
-			session.beginTransaction();
+		Transaction tx = null;
+		String result = "";
+
+		try {
 			
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
+
 			documentary = session.get(Documentary.class, documentaryId);
 			
-			documentary.removeProducers();
-			
-			documentary.removeLoan();
-			
-			session.delete(documentary);
-			
-			session.getTransaction().commit();
-			
-			flag = true;
-		} catch(Exception e)
-		{
-			 System.out.println("Problem creating session factory");
-		     e.printStackTrace();
+			if(documentary != null)
+			{
+				if (documentary.getProducers() != null && !documentary.getProducers().isEmpty()) 
+				{
+					documentary.removeProducers();
+				}
+
+				if (documentary.getLoan() != null) 
+				{
+					documentary.removeLoanData();
+				}
+
+				session.delete(documentary);
+
+				session.getTransaction().commit();
+
+				result = "deleted";
+			}
+			else
+			{
+				result = "documentaryNotFound";
+			}
+		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
+			System.out.println("Problem creating session factory");
+			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-		
 		}
-		return flag;
+		return result;
 	}
 }

@@ -53,9 +53,9 @@ public class LoansController implements Initializable {
 	@FXML
 	private TextField tfPayment;
 	@FXML
-	private TextField tfStartDate;
-	@FXML
 	private TextField tfDailyPrice;
+	@FXML
+	private DatePicker loanStartDatePicker;
 	@FXML
 	private DatePicker loanDueDatePicker;
 	@FXML
@@ -116,7 +116,7 @@ public class LoansController implements Initializable {
 
 	public void showLoans(ObservableList<Loan> loans) {
 
-		if (loans != null) {
+		if (loans != null && !loans.isEmpty()) {
 			colLoanId.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty(cellData.getValue().getLoanId().toString());
 			});
@@ -153,9 +153,9 @@ public class LoansController implements Initializable {
 		tfItemId.clear();
 		tfStudentId.clear();
 		loanDueDatePicker.setValue(null);
+		loanStartDatePicker.setValue(null);
 		tfStatus.clear();
 		tfPayment.clear();
-		tfStartDate.clear();
 		tfDailyPrice.clear();
 	}
 
@@ -182,12 +182,12 @@ public class LoansController implements Initializable {
 	public void addLoan() throws IOException {
 
 		Date startDate = LoanCalcHelper.getCurrentDate();
-		LocalDate dueDateLocalDate = loanDueDatePicker.getValue();
+		LocalDate dueDateLD = loanDueDatePicker.getValue();
 		Date dueDate = null;
 		
-		if(dueDateLocalDate != null)
+		if(dueDateLD != null)
 		{
-			dueDate = DateHelper.localDateToDate(dueDateLocalDate);
+			dueDate = DateHelper.localDateToDate(dueDateLD);
 		}
 
 		Alert frontEndAlert = LoanValidator.frontEndLoanValidatorForCreatingLoan(tfItemId.getText(), tfStudentId.getText(),
@@ -244,12 +244,14 @@ public class LoansController implements Initializable {
 		if (isLoanIdEmpty && isStudentIdEmpty && isItemIdEmpty) {
 			Alert frontEndAlert = LoanValidator.frontEndLoanValidatorForLoanSearch(null, null, null);
 			frontEndAlert.showAndWait();
-		} else if (!isLoanIdEmpty && (!isStudentIdEmpty || isStudentIdEmpty) && (!isItemIdEmpty || isItemIdEmpty)) {
+		} 
+		//use loan Id even if there may be a student and item id
+		else if (!isLoanIdEmpty) {
 
 			Alert frontEndAlert = LoanValidator.frontEndLoanValidatorForLoanSearch(tfLoanId.getText(), null, null);
 
 			if (frontEndAlert == null) {
-				int loanId = Integer.valueOf(tfLoanId.getText());
+				Integer loanId = Integer.valueOf(tfLoanId.getText());
 
 				Loan loan = LoanDataAccess.loadLoanUsingLoadId(loanId);
 				Alert backEndAlert = LoanValidator.backEndLoanValidatorForLoanSearchUsingLoanId(loan);
@@ -266,16 +268,16 @@ public class LoansController implements Initializable {
 					tfStudentId.setText(studentId + " (" + studentName + ")");
 					tfItemId.setText(itemId + " (" + itemTitle + ")");
 					loanDueDatePicker.setValue(DateHelper.dateToLocalDate(dueDate));
+					loanStartDatePicker.setValue(DateHelper.dateToLocalDate(startDate));
 					BigDecimal currentLoanPayment = LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice);
 					if (loan.isOverdue() == false) {
-						tfStatus.setText("Ongoing");
+						tfStatus.setText("Not Overdue");
 					} else if (loan.isOverdue() == true) {
 						Integer amtOfDaysPassedAfterDueDate = LoanCalcHelper.daysOverdue(loan.getDueDate());
 						String loanFine = String.format("%.2f", LoanCalcHelper.calcOverdueFine(amtOfDaysPassedAfterDueDate, dailyPrice));
 						tfStatus.setText("Overdue by " + amtOfDaysPassedAfterDueDate + " day(s); Fine: $" + loanFine);
 					}
 					tfPayment.setText("$" + String.format("%.2f", currentLoanPayment));
-					tfStartDate.setText(DateHelper.dateToYYYYMMddDate(startDate));
 					tfDailyPrice.setText("$" + String.format("%.2f", dailyPrice));
 				} else {
 					backEndAlert.showAndWait();
@@ -283,14 +285,15 @@ public class LoansController implements Initializable {
 			} else {
 				frontEndAlert.showAndWait();
 			}
-		} else if (isLoanIdEmpty && isStudentIdEmpty && !isItemIdEmpty) {
+			//use item id when there is no loanId and if there may or may not be a studentId
+		} else if (isLoanIdEmpty && !isItemIdEmpty) {
 
 			Alert frontEndAlert = LoanValidator.frontEndLoanValidatorForLoanSearch(null, tfItemId.getText(), null);
 
 			if (frontEndAlert == null) {
 				Integer itemId = Integer.valueOf(tfItemId.getText());
 				Loan loan = LoanDataAccess.loadLoanUsingItemId(itemId);
-				Alert backEndAlert = LoanValidator.backEndLoanValidatorForLoanSearchUsingLoanId(loan);
+				Alert backEndAlert = LoanValidator.backEndLoanValidatorForLoanSearchUsingItemId(loan);
 
 				if (backEndAlert == null) {
 					int studentId = loan.getStudent().getStudentId();
@@ -305,16 +308,16 @@ public class LoansController implements Initializable {
 					tfStudentId.setText(studentName + " (" + studentId + ")");
 					tfItemId.setText(itemTitle + " (" + itemId + ")");
 					loanDueDatePicker.setValue(DateHelper.dateToLocalDate(dueDate));
+					loanStartDatePicker.setValue(DateHelper.dateToLocalDate(startDate));
 					BigDecimal currentLoanPayment = LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice);
 					if (loan.isOverdue() == false) {
-						tfStatus.setText("Ongoing");
+						tfStatus.setText("Not Overdue");
 					} else if (loan.isOverdue() == true) {
 						int amtOfDaysPassedAfterDueDate = LoanCalcHelper.daysOverdue(loan.getDueDate());
 						BigDecimal loanFine = LoanCalcHelper.calcOverdueFine(amtOfDaysPassedAfterDueDate, dailyPrice);
-						tfStatus.setText("Overdue by " + amtOfDaysPassedAfterDueDate + " day(s); Fine: " + loanFine);
+						tfStatus.setText("Overdue by " + amtOfDaysPassedAfterDueDate + " day(s); Fine: $" + loanFine);
 					}
 					tfPayment.setText("$" + String.format("%.2f", currentLoanPayment));
-					tfStartDate.setText(DateHelper.dateToYYYYMMddDate(startDate));
 					tfDailyPrice.setText("$" + String.format("%.2f", dailyPrice));
 				} else {
 					backEndAlert.showAndWait();
@@ -322,8 +325,8 @@ public class LoansController implements Initializable {
 			} else {
 				frontEndAlert.showAndWait();
 			}
-
-		} else if (isLoanIdEmpty && !isStudentIdEmpty && isItemIdEmpty) {
+			//use student is where there is no loanId and if there may or may not be an itemId
+		} else if (isLoanIdEmpty && !isStudentIdEmpty) {
 
 			Alert frontEndAlert = LoanValidator.frontEndLoanValidatorForLoanSearch(null, null, tfStudentId.getText());
 
@@ -343,31 +346,6 @@ public class LoansController implements Initializable {
 			}
 
 		}
-//			else if (isLoanIdEmpty && isStudentIdEmpty && !isItemIdEmpty) {
-//			Integer itemId = Integer.valueOf(tfItemId.getText());
-//			Loan loan = LoanDataAccess.loadLoanUsingLoadId(loanId);
-//			
-//			Integer studentId = loan.getStudent().getStudentId();
-//			String studentName = loan.getStudent().getName();
-//			Integer itemId = loan.getItem().getItemId();
-//			String itemTitle = loan.getItem().getTitle();
-//			Date dueDate = loan.getDueDate();
-//			Date startDate = loan.getStartDate();
-//			Double dailyPrice = loan.getItem().getDailyPrice();
-//			
-//			tfStudentId.setText(studentId + " (" + studentName + ")");
-//			tfItemId.setText(itemId + " (" + itemTitle + ")");
-//			loanDueDatePicker.setValue(DateHelper.dateToLocalDate(dueDate));
-//			Double currentLoanPayment = DateHelper.currentLoanPayment(dueDate, startDate, dailyPrice);
-//			if (loan.getStatus().equals("loaning")) {
-//				tfStatus.setText("loaning");
-//				tfPayment.setText("$" + currentLoanPayment);
-//			} else if (loan.getStatus().equals("overdue")) {
-//				Integer amtOfDaysPassedAfterDueDate = DateHelper.daysPassedAfterDueDate(loan.getDueDate());
-//				tfStatus.setText("overdue" + " (" + amtOfDaysPassedAfterDueDate + " days overdue)");
-//				tfPayment.setText("$" + currentLoanPayment);
-//			}
-//		}
 	}
 
 	public void generateLoanReceipt(Integer itemId) throws IOException {

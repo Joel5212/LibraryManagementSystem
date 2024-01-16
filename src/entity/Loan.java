@@ -99,11 +99,11 @@ public class Loan {
 		this.isOverdue = isOverdue;
 	}
 	
-	public void removeLoan() {
+	public void removeLoanData() {
 		//remove loan from the item side
-		getItem().removeLoan();
+		getItem().removeLoanData();
 	    //remove loan from the student side
-	    getStudent().removeLoan(this);
+	    getStudent().removeLoanData(this);
 	}
 
 }

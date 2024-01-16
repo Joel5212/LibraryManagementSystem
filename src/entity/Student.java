@@ -82,15 +82,15 @@ public class Student {
 		this.loans = loans;
 	}
 	
-	//removing loan info from student side
-	public void removeLoan(Loan loan) {
+	//removing single loan info from student 
+	public void removeLoanData(Loan loan) {
 	    loan.getItem().setIsAvailable(true);
 	    loan.setStudent(null);
 	    getLoans().remove(loan);
 	}
 	
 	//removing all loans of a student
-	public void removeAllLoans()
+	public void removeAllLoansData()
 	{
 		if(loans != null)
 		{
@@ -99,6 +99,7 @@ public class Student {
 				 loan.getItem().setIsAvailable(true);
 				 loan.setStudent(null);
 				 loan.getItem().setLoan(null);
+				 loan.setItem(null);
 			}
 		}
 	}

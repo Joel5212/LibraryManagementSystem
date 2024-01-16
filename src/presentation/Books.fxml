@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
@@ -165,6 +166,26 @@
                                     </TextField>
                                  </children>
                               </HBox>
+                              <HBox prefHeight="69.0" prefWidth="542.0">
+                                 <children>
+                                    <Label prefHeight="39.0" prefWidth="166.0" text="Daily Price:">
+                                       <padding>
+                                          <Insets left="25.0" />
+                                       </padding>
+                                       <font>
+                                          <Font name="Calibri" size="20.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="tfDailyPrice" prefHeight="40.0" prefWidth="320.0" promptText="Enter Daily Price">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                       <HBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                 </children>
+                              </HBox>
                               <HBox fx:id="tfAuthorName" prefHeight="69.0" prefWidth="800.0">
                                  <children>
                                     <Label prefHeight="32.0" prefWidth="165.0" text="Location: ">
@@ -179,26 +200,6 @@
                                        </font>
                                     </Label>
                                     <TextField fx:id="tfLocation" prefHeight="40.0" prefWidth="320.0" promptText="Enter Location">
-                                       <font>
-                                          <Font size="16.0" />
-                                       </font>
-                                       <HBox.margin>
-                                          <Insets bottom="20.0" />
-                                       </HBox.margin>
-                                    </TextField>
-                                 </children>
-                              </HBox>
-                              <HBox prefHeight="69.0" prefWidth="542.0">
-                                 <children>
-                                    <Label prefHeight="39.0" prefWidth="166.0" text="Daily Price:">
-                                       <padding>
-                                          <Insets left="25.0" />
-                                       </padding>
-                                       <font>
-                                          <Font name="Calibri" size="20.0" />
-                                       </font>
-                                    </Label>
-                                    <TextField fx:id="tfDailyPrice" prefHeight="40.0" prefWidth="320.0" promptText="Enter Daily Price">
                                        <font>
                                           <Font size="16.0" />
                                        </font>
@@ -244,14 +245,7 @@
                                           <Insets left="10.0" />
                                        </HBox.margin>
                                     </Label>
-                                    <TextField fx:id="tfPublicationDate" prefHeight="40.0" prefWidth="320.0" promptText="Enter Subject">
-                                       <font>
-                                          <Font size="16.0" />
-                                       </font>
-                                       <HBox.margin>
-                                          <Insets bottom="20.0" />
-                                       </HBox.margin>
-                                    </TextField>
+                                    <DatePicker fx:id="publicationDatePicker" prefHeight="40.0" prefWidth="320.0" promptText="Select Publication Date" />
                                  </children>
                               </HBox>
                               <HBox prefHeight="69.0" prefWidth="542.0">
@@ -339,7 +333,7 @@
                                           <Insets left="50.0" />
                                        </HBox.margin>
                                     </Button>
-                                    <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#createBook" prefHeight="30.0" prefWidth="60.0" text="Add">
+                                    <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#addBook" prefHeight="30.0" prefWidth="60.0" text="Add">
                                        <HBox.margin>
                                           <Insets left="20.0" right="20.0" />
                                        </HBox.margin>
@@ -356,6 +350,9 @@
                                     </Button>
                                     <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#updateBook" prefHeight="30.0" prefWidth="60.0" text="Update" />
                                  </children>
+                                 <padding>
+                                    <Insets left="25.0" />
+                                 </padding>
                               </HBox>
                            </children>
                            <HBox.margin>
@@ -422,7 +419,7 @@
                                           <TableColumn fx:id="colLocation" prefWidth="60.0" text="Location" />
                                           <TableColumn fx:id="colAuthors" prefWidth="242.0" text="Author(s)" />
                                           <TableColumn fx:id="colDailyPrice" prefWidth="91.0" text="Daily Price" />
-                                          <TableColumn fx:id="colNumberPages" prefWidth="83.0" text="# of Pages" />
+                                          <TableColumn fx:id="colNumberOfPages" prefWidth="83.0" text="# of Pages" />
                                           <TableColumn fx:id="colPublisher" prefWidth="168.0" text="Publisher" />
                                           <TableColumn fx:id="colPublicationDate" prefWidth="101.0" text="Publication Date" />
                                           <TableColumn fx:id="colDescription" prefWidth="706.0" text="Description" />

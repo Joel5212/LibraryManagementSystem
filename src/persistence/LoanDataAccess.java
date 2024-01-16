@@ -27,12 +27,17 @@ public class LoanDataAccess {
 	public static void updateLoanStatusAtStartUp() {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 				.addAnnotatedClass(Item.class).addAnnotatedClass(Loan.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+		Session session = null;
+		Transaction tx = null;
 		List<Loan> loans = null;
 		Query query = null;
 
 		try {
-			session.beginTransaction();
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
+
 			String sqlQuery = "SELECT l FROM Loan l WHERE l.isOverdue = false and CURRENT_DATE > l.dueDate";
 			query = session.createQuery(sqlQuery, Loan.class);
 			loans = query.list();
@@ -43,11 +48,12 @@ public class LoanDataAccess {
 			}
 			session.getTransaction().commit();
 		} catch (Exception e) {
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 
 	}
@@ -56,12 +62,16 @@ public class LoanDataAccess {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 				.addAnnotatedClass(Item.class).addAnnotatedClass(Loan.class).buildSessionFactory();
 		String result = "";
-		Session session = factory.getCurrentSession();
+		Session session = null;
+		Transaction tx = null;
 		List<Loan> overdueLoansOfStudent = null;
 		Query query = null;
 
 		try {
-			session.beginTransaction();
+
+			session = factory.getCurrentSession();
+
+			tx = session.beginTransaction();
 
 			Item item = session.get(Item.class, itemId);
 
@@ -85,9 +95,9 @@ public class LoanDataAccess {
 
 							session.save(loan);
 
-							result = "created";
-							
 							session.getTransaction().commit();
+
+							result = "created";
 						} else {
 							result = "overdueLoans";
 						}
@@ -102,9 +112,11 @@ public class LoanDataAccess {
 			}
 		} catch (Exception e) {
 			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
 		}
 		return result;
@@ -128,18 +140,16 @@ public class LoanDataAccess {
 			}
 
 			loans = FXCollections.observableArrayList(query.list());
-			
-			if(loans != null && loans.size() != 0)
-			{
+
+			if (loans != null && !loans.isEmpty()) {
 				session.getTransaction().commit();
 			}
-
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return loans;
 	}
@@ -155,9 +165,8 @@ public class LoanDataAccess {
 			session.beginTransaction();
 
 			loan = session.get(Loan.class, loanId);
-			
-			if(loan != null)
-			{
+
+			if (loan != null) {
 				session.getTransaction().commit();
 			}
 
@@ -165,8 +174,8 @@ public class LoanDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return loan;
 	}
@@ -192,8 +201,8 @@ public class LoanDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return loan;
 	}
@@ -215,9 +224,8 @@ public class LoanDataAccess {
 			query.setParameter("studentId", studentId);
 
 			loans = query.list();
-			
-			if(loans != null && loans.size() != 0)
-			{
+
+			if (loans != null && !loans.isEmpty()) {
 				session.getTransaction().commit();
 			}
 
@@ -225,80 +233,50 @@ public class LoanDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return loans;
 	}
-
-//	public static boolean updateLoan(int loanId, String updateDueDate, String loanDate)
-//	{
-//		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class).addAnnotatedClass(Item.class).addAnnotatedClass(Loan.class).buildSessionFactory();		
-//		Session session = factory.getCurrentSession();
-//		Loan loan = null;
-//		boolean flag = false;
-//		
-//		try
-//		{
-//			
-//			session.beginTransaction();
-//			
-//			loan = session.get(Loan.class, loanId);
-//			
-//			loan.setLoanID(loanId);
-//			loan.setDuedate(updateDueDate);
-//			loan.setLoanDate(loanDate);
-//			
-//			session.getTransaction().commit();
-//			
-//			flag = true;
-//		} catch(Exception e)
-//		{
-//			 System.out.println("Problem creating session factory");
-//		     e.printStackTrace();
-//		} finally {
-//			factory.close();
-//		
-//		}
-//		return flag;
-//	}
 
 	public static String deleteLoan(int loanId) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 				.addAnnotatedClass(Loan.class).addAnnotatedClass(Book.class).addAnnotatedClass(Author.class)
 				.buildSessionFactory();
-		Session session = factory.getCurrentSession();
+		Session session = null;
+		Transaction tx = null;
 		Loan loan = null;
-		String flag = "";
+		String result = "";
 
 		try {
+			session = factory.getCurrentSession();
 
-			session.beginTransaction();
+			tx = session.beginTransaction();
 
 			loan = session.get(Loan.class, loanId);
 
 			if (loan != null) {
-				
-				loan.removeLoan();
+
+				loan.removeLoanData();
 
 				session.delete(loan);
 
-				flag = "deleted";
-				
 				session.getTransaction().commit();
-			}
-			else {
-				flag="loanNotFound";
+
+				result = "deleted";
+			} else {
+				result = "loanNotFound";
 			}
 		} catch (Exception e) {
-			flag = "error";
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 
 	public static String returnItem(int loanId) {
@@ -308,7 +286,7 @@ public class LoanDataAccess {
 		Session session = null;
 		Transaction tx = null;
 		Loan loan = null;
-		String flag = "";
+		String result = "";
 
 		try {
 
@@ -342,92 +320,52 @@ public class LoanDataAccess {
 
 				LoanComplete loanComplete = new LoanComplete(loanId, item, student, startDate, dueDate, returnedDate,
 						dailyPrice, totalPayment, daysOverdue, overdueFine);
-				loan.removeLoan();
+				loan.removeLoanData();
 				session.delete(loan);
 				session.save(loanComplete);
-				flag = "returned";
 				session.getTransaction().commit();
+				result = "returned";
 			} else {
-				flag = "loanNotFound";
+				result = "loanNotFound";
 			}
-
-			session.getTransaction().commit();
 		} catch (Exception e) {
+			result = "error";
+			tx.rollback();
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
-			flag = "error";
-			tx.rollback();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
-		return flag;
+		return result;
 	}
 
-	public static List<LoanComplete> loadCompletedLoansForRevenueReport() {
+	public static ObservableList<LoanComplete> loadCompletedLoansForRevenueReport() {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 				.addAnnotatedClass(Loan.class).addAnnotatedClass(Book.class).addAnnotatedClass(Author.class)
 				.addAnnotatedClass(LoanComplete.class).buildSessionFactory();
-		Session session = null;
-		Transaction tx = null;
+		Session session = factory.getCurrentSession();
 		Query query = null;
-		List<LoanComplete> loansComplete = null;
+		ObservableList<LoanComplete> loansComplete = null;
 		String sqlQuery = null;
 
 		try {
-
-			session = factory.getCurrentSession();
-
-			tx = session.beginTransaction();
+			session.beginTransaction();
 
 			sqlQuery = "FROM LoanComplete";
 
 			query = session.createQuery(sqlQuery);
 
-			loansComplete = query.list();
+			loansComplete = FXCollections.observableArrayList(query.list());
 
 			session.getTransaction().commit();
 		} catch (Exception e) {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
-			tx.rollback();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return loansComplete;
 	}
-
-//	public static Double getDailyPriceOfLoan(Integer itemId) {
-//		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
-//				.addAnnotatedClass(Loan.class).addAnnotatedClass(Book.class).addAnnotatedClass(Author.class).addAnnotatedClass(Documentary.class).addAnnotatedClass(Producer.class)
-//				.addAnnotatedClass(Item.class).buildSessionFactory();
-//		
-//		Session session = null;
-//		Transaction tx = null;
-//		Query query = null;
-//		Double dailyPrice = null;
-//
-//		try {
-//
-//			session = factory.getCurrentSession();
-//
-//			tx = session.beginTransaction();
-//			
-//			Item item = session.get(Item.class, itemId);
-//
-//			dailyPrice = item.getDailyPrice();
-//
-//			session.getTransaction().commit();
-//		} catch (Exception e) {
-//			System.out.println("Problem creating session factory");
-//			e.printStackTrace();
-//			tx.rollback();
-//		} finally {
-//			factory.close();
-//
-//		}
-//		return dailyPrice;
-//	}
-
 }

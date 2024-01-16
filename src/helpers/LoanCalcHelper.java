@@ -30,7 +30,7 @@ public class LoanCalcHelper {
 		
 		if(daysOverdue != 0)
 		{
-			BigDecimal overdueDailyPriceOfItem = dailyPriceOfItem.multiply(new BigDecimal(1.10));
+			BigDecimal overdueDailyPriceOfItem = dailyPriceOfItem.multiply(new BigDecimal(1.10)).setScale(2, RoundingMode.UP);
 			loanFine = overdueDailyPriceOfItem.multiply(new BigDecimal(daysOverdue)).setScale(2, RoundingMode.UP);
 			return loanFine;
 		}

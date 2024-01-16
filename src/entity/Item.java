@@ -119,29 +119,9 @@ public class Item
 		return new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
 	}
 	
-	public void removeLoan() {
-		setIsAvailable(true);
-	    setLoan(null);
+	//removing item and student from loan
+	public void removeLoanData() {
+		loan.setItem(null);
+	    loan.setStudent(null);
 	}
-	
-	/* End Methods */
-
-	@Override
-	public String toString() {
-		return "Item \nitem_id=" + itemId + "\nisAvailable=" + isAvailable + "\ntitle=" + title + "\ndescription=" + description
-				+ "\nlocation=" + location + "\ndailyPrice=" + dailyPrice;
-
-	}
-
 }
-
-/* ITEM ATTRIBUTES
-code-
-title-
-description-
-location-
-dailyPrice-
-status-
-returnItem()
-updateItemAvailability()
-*/

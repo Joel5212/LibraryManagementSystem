@@ -2,7 +2,8 @@ package controllers;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.math.BigDecimal;
@@ -20,19 +21,24 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import persistence.AuthorDataAccess;
 import persistence.BookDataAccess;
+import validator.BookValidator;
+import validator.LoanValidator;
 
 public class BooksController implements Initializable {
 
@@ -42,8 +48,6 @@ public class BooksController implements Initializable {
 
 	@FXML
 	private TextField tfBookId;
-	@FXML
-	private HBox tfAuthorName1;
 	@FXML
 	private TextField tfTitle;
 	@FXML
@@ -55,7 +59,7 @@ public class BooksController implements Initializable {
 	@FXML
 	private TextField tfPublisher;
 	@FXML
-	private TextField tfPublicationDate;
+	private DatePicker publicationDatePicker;
 	@FXML
 	private TextField tfNumberOfPages;
 	@FXML
@@ -95,7 +99,7 @@ public class BooksController implements Initializable {
 	@FXML
 	private TableColumn<Book, String> colDailyPrice;
 	@FXML
-	private TableColumn<Book, Integer> colNumberPages;
+	private TableColumn<Book, String> colNumberOfPages;
 	@FXML
 	private TableColumn<Book, String> colPublisher;
 	@FXML
@@ -107,18 +111,17 @@ public class BooksController implements Initializable {
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		// TODO Auto-generated method stub
 		showAllBooks();
-		
-		lvAuthors.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		
-		cbAvailable.setSelected(false);
 
 		ObservableList<Author> authors = FXCollections
 				.observableArrayList(AuthorDataAccess.loadAllAuthors("lastNameAZ"));
-
-		lvAuthors.getItems().addAll(authors);
-
+		
+		if (authors != null && authors.size() != 0) {
+			lvAuthors.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+			lvAuthors.getItems().addAll(authors);
+		}
+		
+		cbAvailable.setSelected(false);
 	}
 
 	public void showAllBooks() {
@@ -147,7 +150,6 @@ public class BooksController implements Initializable {
 
 		colBookId.setCellValueFactory(new PropertyValueFactory<Book, Integer>("itemId"));
 		colTitle.setCellValueFactory(new PropertyValueFactory<Book, String>("title"));
-		colLocation.setCellValueFactory(new PropertyValueFactory<Book, String>("location"));
 		colAuthors.setCellValueFactory(cellData -> {
 
 			StringBuilder sb = new StringBuilder();
@@ -162,19 +164,62 @@ public class BooksController implements Initializable {
 		colDailyPrice.setCellValueFactory(cellData -> {
 			return new SimpleStringProperty("$" + cellData.getValue().getDailyPrice());
 		});
-		colNumberPages.setCellValueFactory(new PropertyValueFactory<Book, Integer>("numberPages"));
-		colPublisher.setCellValueFactory(new PropertyValueFactory<Book, String>("publisher"));
-		colPublicationDate.setCellValueFactory(cellData -> {
-			return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getPublicationDate()));
+		colNumberOfPages.setCellValueFactory(cellData -> {
+			Integer numberOfPages = cellData.getValue().getNumberOfPages();
+
+			if (numberOfPages != null) {
+				return new SimpleStringProperty(numberOfPages.toString());
+			} else {
+				return new SimpleStringProperty("");
+			}
 		});
-		colLocation.setCellValueFactory(new PropertyValueFactory<Book, String>("location"));
-		colDescription.setCellValueFactory(new PropertyValueFactory<Book, String>("description"));
+		colPublisher.setCellValueFactory(cellData -> {
+			String publisher = cellData.getValue().getPublisher();
+
+			if (publisher != null && !publisher.isEmpty()) {
+				return new SimpleStringProperty(publisher);
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+
+		colPublicationDate.setCellValueFactory(cellData -> {
+			Date date = cellData.getValue().getPublicationDate();
+
+			if (date != null) {
+				return new SimpleStringProperty(
+						DateHelper.dateToYYYYMMddDate(cellData.getValue().getPublicationDate()));
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+		colLocation.setCellValueFactory(cellData -> {
+			String location = cellData.getValue().getLocation();
+
+			if (location != null) {
+				return new SimpleStringProperty(location);
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+		colDescription.setCellValueFactory(cellData -> {
+			String description = cellData.getValue().getDescription();
+
+			if (description != null) {
+				return new SimpleStringProperty(description);
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
 		colAvailable.setCellValueFactory(cellData -> {
 			return cellData.getValue().getIsAvailable() ? new SimpleStringProperty("Yes")
 					: new SimpleStringProperty("No");
 		});
 
-		tvBooks.setItems(books);
+		if(books != null && !books.isEmpty())
+		{
+			tvBooks.setItems(books);
+		}
 	}
 
 	@FXML
@@ -204,7 +249,6 @@ public class BooksController implements Initializable {
 				cbTitleAZ.setSelected(false);
 			}
 			showAllBooks();
-
 		}
 	}
 
@@ -215,7 +259,7 @@ public class BooksController implements Initializable {
 		tfLocation.clear();
 		tfDailyPrice.clear();
 		tfPublisher.clear();
-		tfPublicationDate.clear();
+		publicationDatePicker.setValue(null);
 		tfNumberOfPages.clear();
 		taDescription.clear();
 		cbAvailable.setSelected(false);
@@ -226,99 +270,158 @@ public class BooksController implements Initializable {
 				.observableArrayList(AuthorDataAccess.loadAllAuthors("lastNameAZ"));
 
 		lvAuthors.getItems().addAll(authors);
-
 	}
 
 	@FXML
-	private void createBook() {
-		// TODO Auto-generated method stub
+	private void addBook() {
 		String title = tfTitle.getText();
 		String location = tfLocation.getText();
-		BigDecimal dailyPrice = new BigDecimal(tfDailyPrice.getText());
-		String publisher = tfPublisher.getText();
-		Date publicationDate = Date.valueOf(tfPublicationDate.getText());
-		Integer numberOfPages = Integer.valueOf(tfNumberOfPages.getText());
-		String description = taDescription.getText();
-
+		String dailyPrice = tfDailyPrice.getText();
+		String publisher = tfPublisher.getText() != null && !tfPublisher.getText().isEmpty() ? tfPublisher.getText()
+				: null;
+		String description = taDescription.getText() != null && !taDescription.getText().isEmpty()
+				? taDescription.getText()
+				: null;
+		LocalDate publicationDateLD = publicationDatePicker.getValue();
+		Date publicationDate = publicationDateLD != null ? DateHelper.localDateToDate(publicationDateLD) : null;
+		String numberOfPagesString = tfNumberOfPages.getText();
 		List<Author> selectedAuthors = lvAuthors.getSelectionModel().getSelectedItems();
 
-		BookDataAccess.createBook(title, description, location, dailyPrice, numberOfPages, publisher, publicationDate,
-				selectedAuthors);
+		Alert frontendAlert = BookValidator.frontendValidatorForCreatingAndUpdatingBook(title, dailyPrice,
+				selectedAuthors, numberOfPagesString, null);
 
-		clearFields();
-		showAllBooks();
+		if (frontendAlert == null) {
+			Integer numberOfPages = numberOfPagesString != null && !numberOfPagesString.isEmpty()
+					? Integer.valueOf(numberOfPagesString)
+					: null;
+			String result = BookDataAccess.createBook(title, description, location, new BigDecimal(dailyPrice),
+					numberOfPages, publisher, publicationDate, selectedAuthors);
+			Alert backendAlert = BookValidator.backendBookValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllBooks();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
 	private void updateBook() {
-		Integer bookId = Integer.valueOf(tfBookId.getText());
+		String bookId = tfBookId.getText();
 		String title = tfTitle.getText();
 		String location = tfLocation.getText();
-		BigDecimal dailyPrice = new BigDecimal(tfDailyPrice.getText());
-		String publisher = tfPublisher.getText();
-		Date publicationDate = Date.valueOf(tfPublicationDate.getText());
-		Integer numberOfPages = Integer.valueOf(tfNumberOfPages.getText());
-		String description = taDescription.getText();
-
+		String dailyPrice = tfDailyPrice.getText();
+		String publisher = tfPublisher.getText() != null && !tfPublisher.getText().isEmpty() ? tfPublisher.getText()
+				: null;
+		String description = taDescription.getText() != null && !taDescription.getText().isEmpty()
+				? taDescription.getText()
+				: null;
 		List<Author> selectedAuthors = lvAuthors.getSelectionModel().getSelectedItems();
+		LocalDate publicationDateLD = publicationDatePicker.getValue();
+		Date publicationDate = publicationDateLD != null ? DateHelper.localDateToDate(publicationDateLD) : null;
+		String numberOfPagesString = tfNumberOfPages.getText();
 
-		BookDataAccess.updateBook(bookId, title, description, location, dailyPrice, numberOfPages, publisher,
-				publicationDate, selectedAuthors);
+		Alert frontendValidator = BookValidator.frontendValidatorForCreatingAndUpdatingBook(title, dailyPrice,
+				selectedAuthors, numberOfPagesString, bookId);
 
-		showAllBooks();
+		if (frontendValidator == null) {
+			Integer numberOfPages = numberOfPagesString != null && !numberOfPagesString.isEmpty()
+					? Integer.valueOf(numberOfPagesString)
+					: null;
+			String result = BookDataAccess.updateBook(Integer.valueOf(bookId), title, description, location,
+					new BigDecimal(dailyPrice), numberOfPages, publisher, publicationDate,
+					selectedAuthors);
+			Alert backendAlert = BookValidator.backendBookValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllBooks();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendValidator.showAndWait();
+		}
 	}
 
 	@FXML
 	private void loadBook() {
-		Integer bookId = Integer.valueOf(tfBookId.getText());
+		String bookId = tfBookId.getText();
 
-		Book book = BookDataAccess.loadBook(bookId);
+		Alert frontendAlert = BookValidator.frontendValidatorForSearchingAndDeletingBook(bookId);
 
-		tfTitle.setText(book.getTitle());
-		tfLocation.setText(book.getLocation());
-		tfDailyPrice.setText(book.getDailyPrice().toString());
-		tfPublisher.setText(book.getPublisher());
-		tfPublicationDate.setText(DateHelper.dateToYYYYMMddDate(book.getPublicationDate()));
-		tfNumberOfPages.setText(String.valueOf(book.getNumberPages()));
-		taDescription.setText(book.getDescription());
-		cbAvailable.setSelected(book.getIsAvailable());
+		if (frontendAlert == null) {
 
-		List<Author> allAuthors = AuthorDataAccess.loadAllAuthors("lastNameAZ");
-		List<Author> authors = book.getAuthors();
-
-		lvAuthors.getItems().clear();
-
-		int numOfSelectedItems = 0;
-		for (int i = 0; i < allAuthors.size(); i++) {
-			for (int j = 0; j < authors.size(); j++) {
-				if (allAuthors.get(i).getAuthorId() == authors.get(j).getAuthorId()) {
-					allAuthors.remove(i);
-					allAuthors.add(0, authors.get(j));
-					numOfSelectedItems++;
+			Book book = BookDataAccess.loadBook(Integer.valueOf(bookId));
+			Alert backendAlert = BookValidator.backendValidatorForBookSearch(book);
+			
+			if(backendAlert == null)
+			{
+				tfTitle.setText(book.getTitle());
+				tfLocation.setText(book.getLocation() != null && !book.getLocation().isEmpty() ? book.getLocation() : "");
+				tfDailyPrice.setText(book.getDailyPrice().toString());
+				tfPublisher.setText(book.getPublisher() != null && !book.getPublisher().isEmpty() ? book.getPublisher() : "");
+				if(book.getPublicationDate() != null)
+				{
+					publicationDatePicker.setValue(DateHelper.dateToLocalDate(book.getPublicationDate()));
 				}
+				tfNumberOfPages.setText(book.getNumberOfPages() != null ? String.valueOf(book.getNumberOfPages()) : "");
+				taDescription.setText(book.getDescription() != null && !book.getDescription().isEmpty() ? book.getDescription() : "");
+				cbAvailable.setSelected(book.getIsAvailable());
+
+				List<Author> allAuthors = AuthorDataAccess.loadAllAuthors("lastNameAZ");
+				List<Author> authors = book.getAuthors();
+
+				lvAuthors.getItems().clear();
+
+				int numOfSelectedItems = 0;
+				for (int i = 0; i < allAuthors.size(); i++) {
+					for (int j = 0; j < authors.size(); j++) {
+						if (allAuthors.get(i).getAuthorId() == authors.get(j).getAuthorId()) {
+							allAuthors.remove(i);
+							allAuthors.add(0, authors.get(j));
+							numOfSelectedItems++;
+						}
+					}
+				}
+
+				lvAuthors.getItems().addAll(allAuthors);
+
+				while (numOfSelectedItems > 0) {
+					lvAuthors.getSelectionModel().select(allAuthors.get(numOfSelectedItems - 1));
+					numOfSelectedItems--;
+				}
+
+				lvAuthors.getSelectionModel().setSelectionMode(null);
+
+				showAllBooks();
 			}
+			else
+			{
+				backendAlert.showAndWait();
+			}
+		} else {
+			frontendAlert.showAndWait();
 		}
-
-		lvAuthors.getItems().addAll(allAuthors);
-
-		while (numOfSelectedItems > 0) {
-			lvAuthors.getSelectionModel().select(allAuthors.get(numOfSelectedItems - 1));
-			numOfSelectedItems--;
-		}
-
-		lvAuthors.getSelectionModel().setSelectionMode(null);
-
-		showAllBooks();
 	}
 
 	@FXML
 	private void deleteBook() {
-		Integer bookId = Integer.valueOf(tfBookId.getText());
+		String bookId = tfBookId.getText();
 
-		BookDataAccess.deleteBook(bookId);
+		Alert frontendAlert = BookValidator.frontendValidatorForSearchingAndDeletingBook(bookId);
 
-		clearFields();
-		showAllBooks();
+		if (frontendAlert == null) {
+			String result = BookDataAccess.deleteBook(Integer.valueOf(bookId));
+			Alert backendAlert = BookValidator.backendBookValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllBooks();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML

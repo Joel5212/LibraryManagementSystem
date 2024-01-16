@@ -14,6 +14,8 @@ public class LoanReceiptController {
 	@FXML
 	private Label tfStudent;
 	@FXML
+	private Label tfDailyPrice;
+	@FXML
 	private Label tfStartDate;
 	@FXML
 	private Label tfDueDate;
@@ -25,6 +27,7 @@ public class LoanReceiptController {
 		tfLoanId.setText(loan.getLoanId().toString());
 		tfItem.setText(loan.getItem().getTitle() + " (" + loan.getItem().getItemId() + ")");
 		tfStudent.setText(loan.getStudent().getName() + " (" + loan.getStudent().getStudentId() + ")");
+		tfDailyPrice.setText("$ " + loan.getItem().getDailyPrice().toString());
 		tfStartDate.setText(DateHelper.dateToYYYYMMddDate(loan.getStartDate()));
 		tfDueDate.setText(DateHelper.dateToYYYYMMddDate(loan.getDueDate()));
 	}

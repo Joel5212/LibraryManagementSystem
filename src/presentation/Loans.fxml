@@ -164,11 +164,7 @@
                                           <Font name="Calibri" size="20.0" />
                                        </font>
                                     </Label>
-                                    <TextField fx:id="tfStartDate" editable="false" prefHeight="49.0" prefWidth="370.0">
-                                       <font>
-                                          <Font size="16.0" />
-                                       </font>
-                                    </TextField>
+                                    <DatePicker fx:id="loanStartDatePicker" disable="true" editable="false" prefHeight="49.0" prefWidth="370.0" />
                                  </children>
                               </HBox>
                               <HBox prefHeight="69.0" prefWidth="542.0">

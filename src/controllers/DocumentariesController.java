@@ -2,10 +2,13 @@ package controllers;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.math.BigDecimal;
+
+import entity.Author;
 import entity.Book;
 import entity.Documentary;
 import entity.Producer;
@@ -21,18 +24,24 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import persistence.BookDataAccess;
 import persistence.DocumentaryDataAccess;
 import persistence.ProducerDataAccess;
+import validator.BookValidator;
+import validator.DocumentaryValidator;
 
 public class DocumentariesController implements Initializable {
 
@@ -49,13 +58,13 @@ public class DocumentariesController implements Initializable {
 	@FXML
 	private TextField tfDailyPrice;
 	@FXML
-	private TextField tfReleaseDate;
+	private DatePicker releaseDatePicker;
 	@FXML
 	private TextField tfLength;
 	@FXML
 	private TextArea taDescription;
 	@FXML
-	private ListView lvProducers;
+	private ListView<Producer> lvProducers;
 	@FXML
 	private CheckBox cbAvailable;
 	@FXML
@@ -91,7 +100,7 @@ public class DocumentariesController implements Initializable {
 	@FXML
 	private TableColumn<Documentary, String> colReleaseDate;
 	@FXML
-	private TableColumn<Documentary, Integer> colLength;
+	private TableColumn<Documentary, String> colLength;
 	@FXML
 	private TableColumn<Documentary, String> colDescription;
 	@FXML
@@ -108,7 +117,7 @@ public class DocumentariesController implements Initializable {
 			lvProducers.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 			lvProducers.getItems().addAll(producers);
 		}
-		
+
 		cbAvailable.setSelected(false);
 
 	}
@@ -143,7 +152,6 @@ public class DocumentariesController implements Initializable {
 
 		colDocumentaryId.setCellValueFactory(new PropertyValueFactory<Documentary, Integer>("itemId"));
 		colTitle.setCellValueFactory(new PropertyValueFactory<Documentary, String>("title"));
-		colLocation.setCellValueFactory(new PropertyValueFactory<Documentary, String>("location"));
 		colProducers.setCellValueFactory(cellData -> {
 
 			StringBuilder sb = new StringBuilder();
@@ -158,18 +166,50 @@ public class DocumentariesController implements Initializable {
 		colDailyPrice.setCellValueFactory(cellData -> {
 			return new SimpleStringProperty("$" + cellData.getValue().getDailyPrice());
 		});
-		colLength.setCellValueFactory(new PropertyValueFactory<Documentary, Integer>("length"));
-		colReleaseDate.setCellValueFactory(cellData -> {
-			return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getReleaseDate()));
+		colLength.setCellValueFactory(cellData -> {
+			Integer length = cellData.getValue().getLength();
+
+			if (length != null) {
+				return new SimpleStringProperty(length.toString());
+			} else {
+				return new SimpleStringProperty("");
+			}
 		});
-		colLocation.setCellValueFactory(new PropertyValueFactory<Documentary, String>("location"));
-		colDescription.setCellValueFactory(new PropertyValueFactory<Documentary, String>("description"));
+
+		colReleaseDate.setCellValueFactory(cellData -> {
+			Date date = cellData.getValue().getReleaseDate();
+
+			if (date != null) {
+				return new SimpleStringProperty(DateHelper.dateToYYYYMMddDate(cellData.getValue().getReleaseDate()));
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+		colLocation.setCellValueFactory(cellData -> {
+			String location = cellData.getValue().getLocation();
+
+			if (location != null) {
+				return new SimpleStringProperty(location);
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+		colDescription.setCellValueFactory(cellData -> {
+			String description = cellData.getValue().getDescription();
+
+			if (description != null) {
+				return new SimpleStringProperty(description);
+			} else {
+				return new SimpleStringProperty("");
+			}
+		});
+
 		colAvailable.setCellValueFactory(cellData -> {
 			return cellData.getValue().getIsAvailable() ? new SimpleStringProperty("Yes")
 					: new SimpleStringProperty("No");
 		});
 
-		if (documentaries != null && documentaries.size() != 0) {
+		if (documentaries != null && !documentaries.isEmpty()) {
 			tvDocumentaries.setItems(documentaries);
 		}
 	}
@@ -201,7 +241,6 @@ public class DocumentariesController implements Initializable {
 				cbTitleAZ.setSelected(false);
 			}
 			showAllDocumentaries();
-
 		}
 	}
 
@@ -211,7 +250,7 @@ public class DocumentariesController implements Initializable {
 		tfTitle.clear();
 		tfLocation.clear();
 		tfDailyPrice.clear();
-		tfReleaseDate.clear();
+		releaseDatePicker.setValue(null);
 		tfLength.clear();
 		taDescription.clear();
 		cbAvailable.setSelected(false);
@@ -226,94 +265,145 @@ public class DocumentariesController implements Initializable {
 	}
 
 	@FXML
-	private void createDocumentary() {
+	private void addDocumentary() {
 		// TODO Auto-generated method stub
 		String title = tfTitle.getText();
 		String location = tfLocation.getText();
-		BigDecimal dailyPrice = new BigDecimal(tfDailyPrice.getText());
-		Date releaseDate = Date.valueOf(tfReleaseDate.getText());
-		Integer length = Integer.valueOf(tfLength.getText());
-		String description = taDescription.getText();
-
+		String dailyPrice = tfDailyPrice.getText();
+		String description = taDescription.getText() != null && !taDescription.getText().isEmpty()
+				? taDescription.getText()
+				: null;
+		LocalDate releaseDateLD = releaseDatePicker.getValue();
+		Date releaseDate = releaseDateLD != null ? DateHelper.localDateToDate(releaseDateLD) : null;
+		String lengthString = tfLength.getText();
 		List<Producer> selectedProducers = lvProducers.getSelectionModel().getSelectedItems();
 
-		DocumentaryDataAccess.createDocumentary(title, description, location, dailyPrice, length,
-				releaseDate, selectedProducers);
+		Alert frontendAlert = DocumentaryValidator.frontendValidatorForCreatingAndUpdatingDocumentary(title, dailyPrice,
+				selectedProducers, lengthString, null);
 
-		clearFields();
-		showAllDocumentaries();
+		if (frontendAlert == null) {
+			Integer length = lengthString != null && !lengthString.isEmpty() ? Integer.valueOf(lengthString) : null;
+			String result = DocumentaryDataAccess.createDocumentary(title, description, location,
+					new BigDecimal(dailyPrice), length, releaseDate, selectedProducers);
+			Alert backendAlert = DocumentaryValidator.backendDocumentaryValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllDocumentaries();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
 	private void updateDocumentary() {
-		Integer bookId = Integer.valueOf(tfDocumentaryId.getText());
-		boolean available = cbAvailable.isSelected();
+		String documentaryId = tfDocumentaryId.getText();
 		String title = tfTitle.getText();
 		String location = tfLocation.getText();
-		BigDecimal dailyPrice = new BigDecimal(tfDailyPrice.getText());
-		Date releaseDate = Date.valueOf(tfReleaseDate.getText());
-		Integer length = Integer.valueOf(tfLength.getText());
-		String description = taDescription.getText();
+		String dailyPrice = tfDailyPrice.getText();
+		String description = taDescription.getText() != null && !taDescription.getText().isEmpty()
+				? taDescription.getText()
+				: null;
+		LocalDate releaseDateLD = releaseDatePicker.getValue();
+		Date releaseDate = releaseDateLD != null ? DateHelper.localDateToDate(releaseDateLD) : null;
+		String lengthString = tfLength.getText();
+		List<Producer> selectedProducers = lvProducers.getSelectionModel().getSelectedItems();
 
-		List<Producer> selectedAuthors = lvProducers.getSelectionModel().getSelectedItems();
+		Alert frontendAlert = DocumentaryValidator.frontendValidatorForCreatingAndUpdatingDocumentary(title, dailyPrice,
+				selectedProducers, lengthString, null);
 
-		DocumentaryDataAccess.updateDocumentary(bookId, available, title, description, location, dailyPrice, length,
-				releaseDate, selectedAuthors);
-
-		clearFields();
-		showAllDocumentaries();
+		if (frontendAlert == null) {
+			Integer numberOfPages = lengthString != null && !lengthString.isEmpty() ? Integer.valueOf(lengthString)
+					: null;
+			String result = DocumentaryDataAccess.updateDocumentary(Integer.valueOf(documentaryId), title, description,
+					location, new BigDecimal(dailyPrice), numberOfPages, releaseDate, selectedProducers);
+			Alert backendAlert = DocumentaryValidator.backendDocumentaryValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllDocumentaries();
+			}
+			backendAlert.showAndWait();
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
 	private void loadDocumentary() {
-		Integer documentaryId = Integer.valueOf(tfDocumentaryId.getText());
+		String documentaryId = tfDocumentaryId.getText();
 
-		Documentary documentary = DocumentaryDataAccess.loadDocumentary(documentaryId);
+		Alert frontendAlert = DocumentaryValidator.frontendValidatorForSearchingAndDeletingDocumentary(documentaryId);
 
-		tfTitle.setText(documentary.getTitle());
-		tfLocation.setText(documentary.getLocation());
-		tfDailyPrice.setText(documentary.getDailyPrice().toString());
-		tfReleaseDate.setText(DateHelper.dateToYYYYMMddDate(documentary.getReleaseDate()));
-		tfLength.setText(String.valueOf(documentary.getLength()));
-		taDescription.setText(documentary.getDescription());
-		cbAvailable.setSelected(documentary.getIsAvailable());
+		if (frontendAlert == null) {
 
-		List<Producer> allProducers = ProducerDataAccess.loadAllProducers("lastNameAZ");
-		List<Producer> producers = documentary.getProducers();
+			Documentary documentary = DocumentaryDataAccess.loadDocumentary(Integer.valueOf(documentaryId));
+			Alert backendAlert = DocumentaryValidator.backendValidatorForDcoumentarySearch(documentary);
 
-		lvProducers.getItems().clear();
+			if (backendAlert == null) {
 
-		int numOfSelectedItems = 0;
-		for (int i = 0; i < allProducers.size(); i++) {
-			for (int j = 0; j < producers.size(); j++) {
-				if (allProducers.get(i).getProducerId() == producers.get(j).getProducerId()) {
-					allProducers.remove(i);
-					allProducers.add(0, producers.get(j));
-					numOfSelectedItems++;
+				tfTitle.setText(documentary.getTitle());
+				tfLocation.setText(documentary.getLocation() != null && !documentary.getLocation().isEmpty() ? documentary.getLocation() : "");
+				tfDailyPrice.setText(documentary.getDailyPrice().toString());
+				if (documentary.getReleaseDate() != null) {
+					releaseDatePicker.setValue(DateHelper.dateToLocalDate(documentary.getReleaseDate()));
 				}
+				tfLength.setText(documentary.getLength() != null ? String.valueOf(documentary.getLength()) : "");
+				taDescription.setText(documentary.getDescription() != null && !documentary.getDescription().isEmpty() ? documentary.getDescription() : "");
+				cbAvailable.setSelected(documentary.getIsAvailable());
+
+				List<Producer> allProducers = ProducerDataAccess.loadAllProducers("lastNameAZ");
+				List<Producer> producers = documentary.getProducers();
+
+				lvProducers.getItems().clear();
+
+				int numOfSelectedItems = 0;
+				for (int i = 0; i < allProducers.size(); i++) {
+					for (int j = 0; j < producers.size(); j++) {
+						if (allProducers.get(i).getProducerId() == producers.get(j).getProducerId()) {
+							allProducers.remove(i);
+							allProducers.add(0, producers.get(j));
+							numOfSelectedItems++;
+						}
+					}
+				}
+
+				lvProducers.getItems().addAll(allProducers);
+
+				while (numOfSelectedItems > 0) {
+					lvProducers.getSelectionModel().select(allProducers.get(numOfSelectedItems - 1));
+					numOfSelectedItems--;
+				}
+
+				lvProducers.getSelectionModel().setSelectionMode(null);
+
+				showAllDocumentaries();
+			} else {
+				backendAlert.showAndWait();
 			}
+		} else {
+			frontendAlert.showAndWait();
 		}
-
-		lvProducers.getItems().addAll(allProducers);
-
-		while (numOfSelectedItems > 0) {
-			lvProducers.getSelectionModel().select(allProducers.get(numOfSelectedItems - 1));
-			numOfSelectedItems--;
-		}
-
-		lvProducers.getSelectionModel().setSelectionMode(null);
-
-		showAllDocumentaries();
 	}
 
 	@FXML
 	private void deleteDocumentary() {
-		Integer bookId = Integer.valueOf(tfDocumentaryId.getText());
+		String documentaryId = tfDocumentaryId.getText();
 
-		DocumentaryDataAccess.deleteDocumentary(bookId);
+		Alert frontendAlert = DocumentaryValidator.frontendValidatorForSearchingAndDeletingDocumentary(documentaryId);
 
-		clearFields();
-		showAllDocumentaries();
+		if (frontendAlert == null) {
+			String result = DocumentaryDataAccess.deleteDocumentary(Integer.valueOf(documentaryId));
+			Alert backendAlert = DocumentaryValidator.backendDocumentaryValidator(result);
+			if (backendAlert.getAlertType() == AlertType.CONFIRMATION) {
+				clearFields();
+				showAllDocumentaries();
+			} else {
+				backendAlert.showAndWait();
+			}
+		} else {
+			frontendAlert.showAndWait();
+		}
 	}
 
 	@FXML
@@ -342,7 +432,7 @@ public class DocumentariesController implements Initializable {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
+
 	@FXML
 	public void booksPage(ActionEvent event) throws IOException {
 		root = FXMLLoader.load(getClass().getResource("../presentation/Books.fxml"));

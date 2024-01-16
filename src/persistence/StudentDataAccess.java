@@ -36,8 +36,8 @@ public class StudentDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return result;
 	}
@@ -63,6 +63,7 @@ public class StudentDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
 		}
 		return student;
@@ -89,6 +90,7 @@ public class StudentDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
 		}
 		return students;
@@ -129,8 +131,8 @@ public class StudentDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return result;
 	}
@@ -150,7 +152,7 @@ public class StudentDataAccess {
 			
 			if(student != null)
 			{
-				student.removeAllLoans();
+				student.removeAllLoansData();
 				
 				session.delete(student);
 				
@@ -167,8 +169,8 @@ public class StudentDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return result;
 	}

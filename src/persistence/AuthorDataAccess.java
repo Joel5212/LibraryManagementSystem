@@ -34,8 +34,8 @@ public class AuthorDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return tempAuthor;
 	}
@@ -59,8 +59,8 @@ public class AuthorDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return tempAuthor;
 	}
@@ -127,8 +127,8 @@ public class AuthorDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return authors;
 	}
@@ -160,8 +160,8 @@ public class AuthorDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return flag;
 	}
@@ -194,8 +194,8 @@ public class AuthorDataAccess {
 			System.out.println("Problem creating session factory");
 			e.printStackTrace();
 		} finally {
+			session.close();
 			factory.close();
-
 		}
 		return flag;
 	}
