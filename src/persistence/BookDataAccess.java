@@ -235,22 +235,31 @@ public class BookDataAccess {
 			
 			if(book != null)
 			{
+//				if(book.getAuthors() != null && !book.getAuthors().isEmpty())
+//				{
+//					book.removeAuthors();
+//				}
+//				
+//				if(book.getLoan() != null)
+//				{
+//					book.removeLoanData();
+//				}
 				
-				if(book.getAuthors() != null && !book.getAuthors().isEmpty())
+				if(book.getLoan() == null)
 				{
 					book.removeAuthors();
-				}
-				
-				if(book.getLoan() != null)
-				{
-					book.removeLoanData();
-				}
-				
-				session.delete(book);
+					
+					session.delete(book);
 
-				session.getTransaction().commit();
+					session.getTransaction().commit();
+					
+					result = "deleted";
+				}
+				else
+				{
+					result = "dependency";
+				}
 				
-				result = "deleted";
 			}
 			else
 			{

@@ -17,7 +17,7 @@ public class StudentDataAccess {
 	public static String createStudent(String name, Integer graduationYear, String email) {
 		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class)
 				.addAnnotatedClass(Loan.class).addAnnotatedClass(Item.class).buildSessionFactory();
-		Session session = factory.getCurrentSession();
+		Session session = null;
 		Student student = null;
 		String result = "";
 		Transaction tx = null;
@@ -29,8 +29,6 @@ public class StudentDataAccess {
 			tx = session.beginTransaction();
 
 			student = new Student(name, graduationYear, email);
-
-			session.beginTransaction();
 
 			session.save(student);
 
@@ -126,10 +124,10 @@ public class StudentDataAccess {
 				student.setGraduationYear(updatedGraduationYear);
 
 				session.update(student);
-
-				result = "updated";
 				
 				session.getTransaction().commit();
+				
+				result = "updated";
 			}
 			else
 			{
@@ -164,13 +162,18 @@ public class StudentDataAccess {
 			
 			if(student != null)
 			{
-				student.removeAllLoansData();
-				
-				session.delete(student);
-				
-				result = "deleted";
+				if(student.getLoans() == null || student.getLoans().isEmpty())
+				{
+					session.delete(student);
 
-				session.getTransaction().commit();
+					session.getTransaction().commit();
+					
+					result = "deleted";
+				}
+				else
+				{
+					result = "dependency";
+				}
 			}
 			else
 			{

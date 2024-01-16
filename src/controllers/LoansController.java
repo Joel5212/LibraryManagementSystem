@@ -116,7 +116,6 @@ public class LoansController implements Initializable {
 
 	public void showLoans(ObservableList<Loan> loans) {
 
-		if (loans != null && !loans.isEmpty()) {
 			colLoanId.setCellValueFactory(cellData -> {
 				return new SimpleStringProperty(cellData.getValue().getLoanId().toString());
 			});
@@ -143,8 +142,13 @@ public class LoansController implements Initializable {
 				return new SimpleStringProperty(cellData.getValue().isOverdue() ? "Overdue" : "Ongoing");
 			});
 
-			tvLoans.setItems(loans);
-		}
+			if (loans != null && !loans.isEmpty()) {
+				tvLoans.setItems(loans);
+			}
+			else
+			{
+				tvLoans.setItems(null);
+			}
 	}
 
 	@FXML

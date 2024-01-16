@@ -61,88 +61,16 @@ public class LoanRevenueReportController implements Initializable {
 
 		ObservableList<LoanReport> loansRevenueReport = FXCollections.observableArrayList();
 
-		if (!loansComplete.isEmpty() && loans.isEmpty()) {
-			for (LoanComplete loanComplete : loansComplete) {
-				LoanReport loanReport = new LoanReport();
-				loanReport.setLoanId(loanComplete.getLoanId());
-				loanReport.setItem(loanComplete.getItem());
-				loanReport.setStudent(loanComplete.getStudent());
-				loanReport.setStartDate(loanComplete.getStartDate());
-				loanReport.setDueDate(loanComplete.getDueDate());
-				loanReport.setReturnedDate(loanComplete.getReturnedDate());
-				BigDecimal dailyPrice = loanComplete.getDailyPrice();
-				loanReport.setDailyPrice(dailyPrice);
-				Integer daysOverdue = LoanCalcHelper.daysOverdue(loanComplete.getDueDate());
-				loanReport.setDaysOverdue(daysOverdue);
-				loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
-				loansRevenueReport.add(loanReport);
-			}
-		} else if (loansComplete.isEmpty() && !loans.isEmpty()) {
-			for (Loan loan : loans) {
-				LoanReport loanReport = new LoanReport();
-				loanReport.setLoanId(loan.getLoanId());
-				loanReport.setItem(loan.getItem().getTitle() + " (" + loan.getItem().getItemId() + ") ");
-				loanReport.setStudent(loan.getStudent().getName() + " (" + loan.getStudent().getStudentId() + ") ");
-				loanReport.setStartDate(loan.getStartDate());
-				loanReport.setDueDate(loan.getDueDate());
-				loanReport.setReturnedDate(null);
-				BigDecimal dailyPrice = loan.getItem().getDailyPrice();
-				loanReport.setDailyPrice(dailyPrice);
-				Integer daysOverdue = LoanCalcHelper.daysOverdue(loan.getDueDate());
-				loanReport.setDaysOverdue(daysOverdue);
-				loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
-				loansRevenueReport.add(loanReport);
-			}
-		} else {
-			int i = 0;
-			int j = 0;
-			while ((i < loans.size() && j < loansComplete.size())) {
-				if (loans.get(i).getLoanId() < loansComplete.get(j).getLoanId()) {
-					LoanReport loanReport = new LoanReport();
-					loanReport.setLoanId(loans.get(i).getLoanId());
-					loanReport.setItem(
-							loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
-					loanReport.setStudent(loans.get(i).getStudent().getName() + " ("
-							+ loans.get(i).getStudent().getStudentId() + ") ");
-					Date startDate = loans.get(i).getStartDate();
-					loanReport.setStartDate(startDate);
-					Date dueDate = loans.get(i).getDueDate();
-					loanReport.setDueDate(dueDate);
-					loanReport.setReturnedDate(null);
-					BigDecimal dailyPrice = loans.get(i).getItem().getDailyPrice();
-					loanReport.setDailyPrice(dailyPrice);
-					Integer daysOverdue = LoanCalcHelper.daysOverdue(loans.get(i).getDueDate());
-					loanReport.setDaysOverdue(daysOverdue);
-					loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
-					loanReport.setTotalPayment(LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice));
-					loansRevenueReport.add(loanReport);
-
-					i++;
-				} else if (loans.get(i).getLoanId() > loansComplete.get(j).getLoanId()) {
-					LoanReport loanReport = new LoanReport();
-					loanReport.setLoanId(loansComplete.get(j).getLoanId());
-					loanReport.setItem(loansComplete.get(j).getItem());
-					loanReport.setStudent(loansComplete.get(j).getStudent());
-					loanReport.setStartDate(loansComplete.get(j).getStartDate());
-					loanReport.setDueDate(loansComplete.get(j).getDueDate());
-					loanReport.setReturnedDate(loansComplete.get(j).getReturnedDate());
-					loanReport.setDailyPrice(loansComplete.get(j).getDailyPrice());
-					loanReport.setDaysOverdue(loansComplete.get(j).getDaysOverdue());
-					loanReport.setOverdueFine(loansComplete.get(j).getOverdueFine());
-					loanReport.setTotalPayment(loansComplete.get(j).getTotalPayment());
-					loansRevenueReport.add(loanReport);
-
-					j++;
-				}
-			}
-			
-			while (i < loans.size()) {
+		int i = 0;
+		int j = 0;
+		while ((i < loans.size() && j < loansComplete.size())) {
+			if (loans.get(i).getLoanId() < loansComplete.get(j).getLoanId()) {
 				LoanReport loanReport = new LoanReport();
 				loanReport.setLoanId(loans.get(i).getLoanId());
-				loanReport.setItem(
-						loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
-				loanReport.setStudent(loans.get(i).getStudent().getName() + " ("
-						+ loans.get(i).getStudent().getStudentId() + ") ");
+				loanReport
+						.setItem(loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
+				loanReport.setStudent(
+						loans.get(i).getStudent().getName() + " (" + loans.get(i).getStudent().getStudentId() + ") ");
 				Date startDate = loans.get(i).getStartDate();
 				loanReport.setStartDate(startDate);
 				Date dueDate = loans.get(i).getDueDate();
@@ -157,10 +85,7 @@ public class LoanRevenueReportController implements Initializable {
 				loansRevenueReport.add(loanReport);
 
 				i++;
-			}
-			
-			while(j < loansComplete.size())
-			{
+			} else if (loans.get(i).getLoanId() > loansComplete.get(j).getLoanId()) {
 				LoanReport loanReport = new LoanReport();
 				loanReport.setLoanId(loansComplete.get(j).getLoanId());
 				loanReport.setItem(loansComplete.get(j).getItem());
@@ -171,10 +96,50 @@ public class LoanRevenueReportController implements Initializable {
 				loanReport.setDailyPrice(loansComplete.get(j).getDailyPrice());
 				loanReport.setDaysOverdue(loansComplete.get(j).getDaysOverdue());
 				loanReport.setOverdueFine(loansComplete.get(j).getOverdueFine());
+				loanReport.setTotalPayment(loansComplete.get(j).getTotalPayment());
 				loansRevenueReport.add(loanReport);
 
 				j++;
 			}
+		}
+
+		while (i < loans.size()) {
+			LoanReport loanReport = new LoanReport();
+			loanReport.setLoanId(loans.get(i).getLoanId());
+			loanReport.setItem(loans.get(i).getItem().getTitle() + " (" + loans.get(i).getItem().getItemId() + ") ");
+			loanReport.setStudent(
+					loans.get(i).getStudent().getName() + " (" + loans.get(i).getStudent().getStudentId() + ") ");
+			Date startDate = loans.get(i).getStartDate();
+			loanReport.setStartDate(startDate);
+			Date dueDate = loans.get(i).getDueDate();
+			loanReport.setDueDate(dueDate);
+			loanReport.setReturnedDate(null);
+			BigDecimal dailyPrice = loans.get(i).getItem().getDailyPrice();
+			loanReport.setDailyPrice(dailyPrice);
+			Integer daysOverdue = LoanCalcHelper.daysOverdue(loans.get(i).getDueDate());
+			loanReport.setDaysOverdue(daysOverdue);
+			loanReport.setOverdueFine(LoanCalcHelper.calcOverdueFine(daysOverdue, dailyPrice));
+			loanReport.setTotalPayment(LoanCalcHelper.currentLoanPayment(dueDate, startDate, dailyPrice));
+			loansRevenueReport.add(loanReport);
+
+			i++;
+		}
+
+		while (j < loansComplete.size()) {
+			LoanReport loanReport = new LoanReport();
+			loanReport.setLoanId(loansComplete.get(j).getLoanId());
+			loanReport.setItem(loansComplete.get(j).getItem());
+			loanReport.setStudent(loansComplete.get(j).getStudent());
+			loanReport.setStartDate(loansComplete.get(j).getStartDate());
+			loanReport.setDueDate(loansComplete.get(j).getDueDate());
+			loanReport.setReturnedDate(loansComplete.get(j).getReturnedDate());
+			loanReport.setDailyPrice(loansComplete.get(j).getDailyPrice());
+			loanReport.setDaysOverdue(loansComplete.get(j).getDaysOverdue());
+			loanReport.setOverdueFine(loansComplete.get(j).getOverdueFine());
+			loanReport.setTotalPayment(loansComplete.get(j).getTotalPayment());
+			loansRevenueReport.add(loanReport);
+
+			j++;
 		}
 
 		if (loansRevenueReport != null && !loansRevenueReport.isEmpty()) {
@@ -207,7 +172,11 @@ public class LoanRevenueReportController implements Initializable {
 				return new SimpleStringProperty("$" + cellData.getValue().getTotalPayment());
 			});
 
-			tvLoanReport.setItems(loansRevenueReport);
+			if (loansRevenueReport != null && !loansRevenueReport.isEmpty()) {
+				tvLoanReport.setItems(loansRevenueReport);
+			} else {
+				tvLoanReport.setItems(null);
+			}
 		}
 
 	}

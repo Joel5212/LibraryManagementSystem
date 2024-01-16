@@ -109,7 +109,14 @@ public class AuthorsController implements Initializable {
 		colNationality.setCellValueFactory(new PropertyValueFactory<Author, String>("nationality"));
 		colSubject.setCellValueFactory(new PropertyValueFactory<Author, String>("subject"));
 
-		tvAuthors.setItems(authors);
+		if(authors != null && !authors.isEmpty())
+		{
+			tvAuthors.setItems(authors);
+		}
+		else
+		{
+			tvAuthors.setItems(null);
+		}
 	}
 
 	@FXML

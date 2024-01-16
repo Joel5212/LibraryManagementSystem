@@ -263,14 +263,29 @@ public class DocumentaryDataAccess {
 			
 			if(documentary != null)
 			{
-				if (documentary.getProducers() != null && !documentary.getProducers().isEmpty()) 
+//				if (documentary.getProducers() != null && !documentary.getProducers().isEmpty()) 
+//				{
+//					documentary.removeProducers();
+//				}
+//
+//				if (documentary.getLoan() != null) 
+//				{
+//					documentary.removeLoanData();
+//				}
+				
+				if(documentary.getLoan() == null)
 				{
 					documentary.removeProducers();
-				}
+					
+					session.delete(documentary);
 
-				if (documentary.getLoan() != null) 
+					session.getTransaction().commit();
+					
+					result = "deleted";
+				}
+				else
 				{
-					documentary.removeLoanData();
+					result = "dependency";
 				}
 
 				session.delete(documentary);

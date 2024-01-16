@@ -93,9 +93,13 @@ public class StudentsController implements Initializable {
 		colStudentEmail.setCellValueFactory(new PropertyValueFactory<Student, String>("email"));
 		colGraduationYear.setCellValueFactory(new PropertyValueFactory<Student, Integer>("graduationYear"));
 
-		if(students != null)
+		if(students != null && !students.isEmpty())
 		{
 			tvStudents.setItems(students);
+		}
+		else
+		{
+			tvStudents.setItems(null);
 		}
 	}
 

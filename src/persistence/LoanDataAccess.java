@@ -297,9 +297,6 @@ public class LoanDataAccess {
 			loan = session.get(Loan.class, loanId);
 
 			if (loan != null) {
-
-				loan.getItem().setIsAvailable(true);
-
 				String item = loan.getItem().getTitle() + " (" + loan.getItem().getItemId() + ") ";
 
 				BigDecimal dailyPrice = loan.getItem().getDailyPrice();

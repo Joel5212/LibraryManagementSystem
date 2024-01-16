@@ -212,6 +212,10 @@ public class DocumentariesController implements Initializable {
 		if (documentaries != null && !documentaries.isEmpty()) {
 			tvDocumentaries.setItems(documentaries);
 		}
+		else
+		{
+			tvDocumentaries.setItems(null);
+		}
 	}
 
 	@FXML

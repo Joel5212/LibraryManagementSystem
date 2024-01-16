@@ -78,7 +78,12 @@ public class StudentValidator {
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Student not found!");
 			return alert;
-		} else if (result.equals("created")) {
+		} else if (result.equals("dependency")) {
+			alert = new Alert(AlertType.ERROR);
+			alert.setHeaderText("Deleted!");
+			alert.setHeaderText("Student has loans so student cannot be deleted!");
+			return alert;
+		}else if (result.equals("created")) {
 			alert = new Alert(AlertType.CONFIRMATION);
 			alert.setHeaderText("Created!");
 			alert.setHeaderText("Student has been created!");
@@ -93,7 +98,7 @@ public class StudentValidator {
 			alert.setHeaderText("Deleted!");
 			alert.setHeaderText("Student has been deleted!");
 			return alert;
-		}
+		} 
 		return alert;
 	}
 	

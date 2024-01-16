@@ -121,7 +121,9 @@ public class Item
 	
 	//removing item and student from loan
 	public void removeLoanData() {
-		loan.setItem(null);
-	    loan.setStudent(null);
+		setIsAvailable(true);
+		setLoan(null);
+//		loan.setItem(null);
+//	    loan.setStudent(null);
 	}
 }

@@ -84,7 +84,12 @@ public class DocumentaryValidator {
 			alert.setHeaderText("Error!");
 			alert.setHeaderText("Documentary not found!");
 			return alert;
-		} else if (result.equals("created")) {
+		} else if (result.equals("dependency")) {
+			alert = new Alert(AlertType.ERROR);
+			alert.setHeaderText("Error!");
+			alert.setHeaderText("Item is being loaned so item cannot be deleted!");
+			return alert;
+		}else if (result.equals("created")) {
 			alert = new Alert(AlertType.CONFIRMATION);
 			alert.setHeaderText("Created!");
 			alert.setHeaderText("Documentary has been created!");

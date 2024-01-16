@@ -103,7 +103,7 @@ public class Loan {
 		//remove loan from the item side
 		getItem().removeLoanData();
 	    //remove loan from the student side
-	    getStudent().removeLoanData(this);
+		getStudent().removeLoanData(this);
 	}
 
 }
